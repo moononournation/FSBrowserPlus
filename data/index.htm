@@ -1,8 +1,8 @@
-<!-- 
+<!--
   FSWebServer - Example Index Page
   Copyright (c) 2015 Hristo Gochkov. All rights reserved.
-  This file is part of the WebServer library for Arduino environment.
- 
+  This file is part of the ESP8266WebServer library for Arduino environment.
+
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
   License as published by the Free Software Foundation; either
@@ -17,73 +17,115 @@
 -->
 <!DOCTYPE html>
 <html>
-<head>
-  <meta http-equiv="Content-type" content="text/html; charset=utf-8">
-  <title>ESP Monitor</title>
-  <script type="text/javascript" src="graphs.js"></script>
-  <script type="text/javascript">
-    var heap,temp,digi;
-    var reloadPeriod = 1000;
-    var running = false;
-    
-    function loadValues(){
-      if(!running) return;
-      var xh = new XMLHttpRequest();
-      xh.onreadystatechange = function(){
-        if (xh.readyState == 4){
-          if(xh.status == 200) {
-            var res = JSON.parse(xh.responseText);
-            heap.add(res.heap);
-            temp.add(res.analog);
-            digi.add(res.gpio);
-            if(running) setTimeout(loadValues, reloadPeriod);
-          } else running = false;
+  <head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    <title>WebSocketTester</title>
+    <style type="text/css" media="screen">
+    body {
+      margin:0;
+      padding:0;
+      background-color: black;
+    }
+
+    #dbg, #input_div, #input_el {
+      font-family: monaco;
+      font-size: 12px;
+      line-height: 13px;
+      color: #AAA;
+    }
+
+    #dbg, #input_div {
+      margin:0;
+      padding:0;
+      padding-left:4px;
+    }
+
+    #input_el {
+      width:98%;
+      background-color: rgba(0,0,0,0);
+      border: 0px;
+    }
+    #input_el:focus {
+      outline: none;
+    }
+    </style>
+    <script type="text/javascript">
+    var ws = null;
+    function ge(s){ return document.getElementById(s);}
+    function ce(s){ return document.createElement(s);}
+    function stb(){ window.scrollTo(0, document.body.scrollHeight || document.documentElement.scrollHeight); }
+    function sendBlob(str){
+      var buf = new Uint8Array(str.length);
+      for (var i = 0; i < str.length; ++i) buf[i] = str.charCodeAt(i);
+      ws.send(buf);
+    }
+    function addMessage(m){
+      var msg = ce("div");
+      msg.innerText = m;
+      ge("dbg").appendChild(msg);
+      stb();
+    }
+    function startSocket(){
+      ws = new WebSocket('ws://'+document.location.host+'/ws',['arduino']);
+      ws.binaryType = "arraybuffer";
+      ws.onopen = function(e){
+        addMessage("Connected");
+      };
+      ws.onclose = function(e){
+        addMessage("Disconnected");
+      };
+      ws.onerror = function(e){
+        console.log("ws error", e);
+        addMessage("Error");
+      };
+      ws.onmessage = function(e){
+        var msg = "";
+        if(e.data instanceof ArrayBuffer){
+          msg = "BIN:";
+          var bytes = new Uint8Array(e.data);
+          for (var i = 0; i < bytes.length; i++) {
+            msg += String.fromCharCode(bytes[i]);
+          }
+        } else {
+          msg = "TXT:"+e.data;
+        }
+        addMessage(msg);
+      };
+      ge("input_el").onkeydown = function(e){
+        stb();
+        if(e.keyCode == 13 && ge("input_el").value != ""){
+          ws.send(ge("input_el").value);
+          ge("input_el").value = "";
+        }
+      }
+    }
+    function startEvents(){
+      var es = new EventSource('/events');
+      es.onopen = function(e) {
+        addMessage("Events Opened");
+      };
+      es.onerror = function(e) {
+        if (e.target.readyState != EventSource.OPEN) {
+          addMessage("Events Closed");
         }
       };
-      xh.open("GET", "/all", true);
-      xh.send(null);
-    };
-    
-    function run(){
-      if(!running){
-        running = true;
-        loadValues();
-      }
+      es.onmessage = function(e) {
+        addMessage("Event: " + e.data);
+      };
+      es.addEventListener('ota', function(e) {
+        addMessage("Event[ota]: " + e.data);
+      }, false);
     }
-    
     function onBodyLoad(){
-      var refreshInput = document.getElementById("refresh-rate");
-      refreshInput.value = reloadPeriod;
-      refreshInput.onchange = function(e){
-        var value = parseInt(e.target.value);
-        reloadPeriod = (value > 0)?value:0;
-        e.target.value = reloadPeriod;
-      }
-      var stopButton = document.getElementById("stop-button");
-      stopButton.onclick = function(e){
-        running = false;
-      }
-      var startButton = document.getElementById("start-button");
-      startButton.onclick = function(e){
-        run();
-      }
-      
-      heap = createGraph(document.getElementById("heap"), "Heap", 100, 125, 0, 286328, true, "orange");
-      temp = createGraph(document.getElementById("analog"), "Analog Input", 100, 125, 0, 4095, false, "cyan");
-      digi = createDigiGraph(document.getElementById("digital"), "GPIO", 100, 125, [0, 2, 5, 27], "gold");
-      run();
+      startSocket();
+      startEvents();
     }
-  </script>
-</head>
-<body id="index" style="margin:0; padding:0;" onload="onBodyLoad()">
-  <div id="controls" style="display: block; border: 1px solid rgb(68, 68, 68); padding: 5px; margin: 5px; width: 362px; background-color: rgb(238, 238, 238);">
-    <label>Period (ms):</label>
-    <input type="number" id="refresh-rate"/>
-    <input type="button" id="start-button" value="Start"/>
-    <input type="button" id="stop-button" value="Stop"/>
-  </div>
-  <div id="heap"></div>
-  <div id="analog"></div>
-  <div id="digital"></div>
-</body>
+    </script>
+  </head>
+  <body id="body" onload="onBodyLoad()">
+    <pre id="dbg"></pre>
+    <div id="input_div">
+      $<input type="text" value="" id="input_el">
+    </div>
+  </body>
 </html>

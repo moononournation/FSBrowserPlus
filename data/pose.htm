@@ -197,7 +197,7 @@
     servo14.oninput = sendPose;
     servo15.oninput = sendPose;
 
-    let url = 'ws://' + location.host + ':81/ws';
+    let url = 'ws://' + location.host + '/ws';
     socket = new WebSocket(url);
 
     // handle incoming messages

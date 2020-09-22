@@ -28,7 +28,7 @@ static void setGPIO(uint8_t gpio, uint8_t value)
 }
 
 // TODO: per request GPIO list
-static void handleReadGPIO(WebServer *server)
+static String handleReadGPIO()
 {
     String json = "{";
     json += "\"heap\":" + String(ESP.getFreeHeap());
@@ -43,6 +43,6 @@ static void handleReadGPIO(WebServer *server)
     }
     json += ", \"gpio\":" + String(v);
     json += "}";
-    server->send(200, "text/json", json);
-    json = String();
+
+    return json;
 }
