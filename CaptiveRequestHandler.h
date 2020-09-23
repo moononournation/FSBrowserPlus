@@ -1,16 +1,20 @@
-class CaptiveRequestHandler : public AsyncWebHandler {
+class CaptiveRequestHandler : public AsyncWebHandler
+{
 public:
   CaptiveRequestHandler() {}
   virtual ~CaptiveRequestHandler() {}
 
-  bool canHandle(AsyncWebServerRequest *request){
-    if(request->host().indexOf(hostname) == 0) {
+  bool canHandle(AsyncWebServerRequest *request)
+  {
+    if (request->host().indexOf(hostname) == 0)
+    {
       return false; // don't captive self hostname
     }
     return true;
   }
 
-  void handleRequest(AsyncWebServerRequest *request) {
+  void handleRequest(AsyncWebServerRequest *request)
+  {
     AsyncResponseStream *response = request->beginResponseStream("text/html");
     response->print("<!DOCTYPE html><html><head><title>Captive Portal</title></head><body>");
     response->print("<h1>Captive Portal</h1>");
