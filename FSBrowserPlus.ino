@@ -170,7 +170,7 @@ void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventTyp
         }
 
         // send message to client
-        client->print(strBuf);
+        client->printf(strBuf);
         Serial.print(strBuf);
       }
       else // binary
