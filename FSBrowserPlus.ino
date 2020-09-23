@@ -85,14 +85,22 @@ static uint16_t hexValue(uint8_t h)
 }
 
 //format bytes
-String formatBytes(size_t bytes) {
-  if (bytes < 1024) {
+String formatBytes(size_t bytes)
+{
+  if (bytes < 1024)
+  {
     return String(bytes) + "B";
-  } else if (bytes < (1024 * 1024)) {
+  }
+  else if (bytes < (1024 * 1024))
+  {
     return String(bytes / 1024.0) + "KB";
-  } else if (bytes < (1024 * 1024 * 1024)) {
+  }
+  else if (bytes < (1024 * 1024 * 1024))
+  {
     return String(bytes / 1024.0 / 1024.0) + "MB";
-  } else {
+  }
+  else
+  {
     return String(bytes / 1024.0 / 1024.0 / 1024.0) + "GB";
   }
 }
@@ -178,7 +186,8 @@ void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventTyp
         }
 
         // send message to client
-        client->printf(strBuf);
+        client->print(strBuf);
+        Serial.print(strBuf);
       }
       else // binary
       {

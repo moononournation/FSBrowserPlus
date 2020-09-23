@@ -11,6 +11,7 @@
     .tbl {
       width: 100%;
     }
+
     .center {
       margin: auto;
       width: 60%;
@@ -126,9 +127,10 @@
   <div id="messages"></div>
 
   <script>
-    let socket;
-    let isConnected = false;
-    let isSending = false;
+    var url = 'ws://' + location.host + '/ws';
+    var socket = undefined;
+    var sendingTimestamp = undefined;
+    var isConnected = false;
 
     var restBtn = document.getElementById("restBtn");
     var servo0 = document.getElementById("servo0");
@@ -146,19 +148,54 @@
     var servo15 = document.getElementById("servo15");
     var output = document.getElementById("output");
 
+    // show message in div#messages
+    function showMessage(message) {
+      var messageElem = document.createElement('div');
+      messageElem.textContent = message;
+      document.getElementById('messages').prepend(messageElem);
+    }
+
+    function newSocket() {
+      socket = new WebSocket(url);
+      // handle incoming messages
+      socket.onmessage = function (event) {
+        if (!isConnected) {
+          isConnected = true;
+        }
+        showMessage(event.data);
+      };
+
+      socket.onclose = function (event) {
+        socket = undefined;
+        isConnected = false;
+        sendingTimestamp = undefined;
+        showMessage("[Closed]" + event.code);
+      };
+
+      socket.onerror = function (err) {
+        socket.close();
+        showMessage('[Error]' + err.message);
+      };
+    }
+
     function toHex(value) {
       return parseInt(value).toString(16).padStart(3, '0');
     }
 
     function sendMessage(outgoingMessage) {
       output.innerHTML = outgoingMessage;
-      if (socket && isConnected) {
-        if (!isSending) {
-          isSending = true;
-          socket.send(outgoingMessage);
+      if (socket) {
+        if (isConnected) {
+          if ((!sendingTimestamp) || ((Date.now() - sendingTimestamp) > 1000)) {
+            sendingTimestamp = Date.now();
+            socket.send(outgoingMessage);
+          }
         }
+      } else {
+        newSocket();
       }
     }
+
     restBtn.onclick = function (event) {
       sendMessage("PCA9685ALL:0:000000000000000000000000000000000000000000000000");
     }
@@ -197,30 +234,7 @@
     servo14.oninput = sendPose;
     servo15.oninput = sendPose;
 
-    let url = 'ws://' + location.host + '/ws';
-    socket = new WebSocket(url);
-
-    // handle incoming messages
-    socket.onmessage = function (event) {
-      isConnected = true;
-
-      let incomingMessage = event.data;
-      showMessage(incomingMessage);
-      isSending = false;
-    };
-
-    socket.onclose = function (event) {
-      isConnected = false;
-
-      showMessage("Closed" + event.code);
-    };
-
-    // show message in div#messages
-    function showMessage(message) {
-      let messageElem = document.createElement('div');
-      messageElem.textContent = message;
-      document.getElementById('messages').prepend(messageElem);
-    }
+    newSocket();
   </script>
 
 </body>
