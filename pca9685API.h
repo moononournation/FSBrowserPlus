@@ -1,11 +1,6 @@
 #include "src/PCA9685/PCA9685.h"
 
-#ifndef I2C_SDA_NUM
-#define I2C_SDA_NUM 12 //21
-#define I2C_SCL_NUM 13 //22
-#endif
-
-static PCA9685 pca9685(0x40);
+static PCA9685 pca9685(PCA9685ADDRESS);
 
 static void pca9685Off()
 {
@@ -14,7 +9,6 @@ static void pca9685Off()
 
 static void pca9685Setup()
 {
-    Wire.begin(I2C_SDA_NUM, I2C_SCL_NUM);
     pca9685.begin();
     pca9685.setFrequency(50);
 

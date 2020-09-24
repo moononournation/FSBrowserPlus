@@ -21,6 +21,8 @@ public:
     response->printf("<p>You were trying to reach: http://%s%s</p>", request->host().c_str(), request->url().c_str());
     response->printf("<h2>Try <a href='http://%s.local/index.htm'>Home Page</a></h2>", hostname);
     response->printf("<h2>Or <a href='http://%s.local/pose.htm'>Pose Design Page</a></h2>", hostname);
+    response->printf("<h2>Or <a href='http://%s.local/snap'>Camera Snap</a></h2>", hostname);
+    response->printf("<h2>Or <a href='http://%s.local/stream'>Camera Stream</a></h2>", hostname);
     response->print("</body></html>");
     request->send(response);
   }

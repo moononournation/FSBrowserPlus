@@ -40,8 +40,26 @@ const char *httpEditPassword = "PleaseInputYourPasswordHere";
 #define PCA9685CMD "PCA9685:"
 #define PCA9685ALLCMD "PCA9685ALL:"
 
+// Select camera model
+// #define CAMERA_MODEL_WROVER_KIT // Has PSRAM
+// #define CAMERA_MODEL_ESP_EYE // Has PSRAM
+// #define CAMERA_MODEL_M5STACK_PSRAM // Has PSRAM
+// #define CAMERA_MODEL_M5STACK_V2_PSRAM // M5Camera version B Has PSRAM
+// #define CAMERA_MODEL_M5STACK_WIDE // Has PSRAM
+// #define CAMERA_MODEL_ESP32_CAM // No PSRAM
+#define CAMERA_MODEL_M5STACK_ESP32CAM // No PSRAM
+// #define CAMERA_MODEL_AI_THINKER // Has PSRAM
+// #define CAMERA_MODEL_TTGO_T_JOURNAL // No PSRAM
+#include "cameraAPI.h"
+
 #include "CaptiveRequestHandler.h"
 #include "gpioAPI.h"
+
+#ifndef I2C_SDA_NUM // defined according to camera model
+#define I2C_SDA_NUM 21
+#define I2C_SCL_NUM 22
+#endif
+#define PCA9685ADDRESS 0x40
 #include "pca9685API.h"
 
 char strBuf[1024];
@@ -236,6 +254,10 @@ void setup()
   Serial.begin(115200);
   Serial.setDebugOutput(true);
 
+  Wire.begin(I2C_SDA_NUM, I2C_SCL_NUM);
+#ifdef CAMERA
+  cameraSetup();
+#endif
   gpioSetup();
   pca9685Setup();
   if (SPIFFS.begin())
@@ -386,6 +408,11 @@ void setup()
     if (index + len == total)
       Serial.printf("BodyEnd: %u\n", total);
   });
+
+#ifdef CAMERA
+  server.on("/snap", HTTP_GET, handleSnap);
+  server.on("/stream", HTTP_GET, handleStream);
+#endif
 
   //get heap status, analog input value and all GPIO statuses in one json call
   server.on("/all", HTTP_GET, [](AsyncWebServerRequest *request) {
