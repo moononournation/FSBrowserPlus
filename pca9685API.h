@@ -17,7 +17,7 @@ static void pca9685Setup()
     pca9685Off();
 }
 
-static void pca9685SetChannel(uint8_t channel, uint16_t value)
+static void setChannel(uint8_t channel, uint16_t value)
 {
     if ((channel < 16) && (value >= 0) && (value < 4096))
     {
@@ -27,7 +27,7 @@ static void pca9685SetChannel(uint8_t channel, uint16_t value)
     }
 }
 
-static void pca9685All(uint16_t delayMs, uint16_t *values)
+static void batchSetChannel(uint16_t delayMs, uint16_t *values)
 {
     pca9685.setChannelsValues(0, 16, values);
     if (delayMs > 0)
@@ -35,4 +35,14 @@ static void pca9685All(uint16_t delayMs, uint16_t *values)
         delay(delayMs);
         pca9685Off();
     }
+}
+
+static void handleSetChannel(AsyncWebServerRequest *request)
+{
+    String channel = request->arg("ch");
+    String value = request->arg("val");
+
+    setChannel(atoi(channel.c_str()), atoi(value.c_str()));
+
+    request->send(200, "text/plain", "Set channel " + channel + " to " + value);
 }

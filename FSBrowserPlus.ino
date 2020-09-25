@@ -163,7 +163,7 @@ void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventTyp
           p++; // skip seperator
           uint16_t value = atoi((char *)p);
           sprintf(strBuf, "[%u] PCA9685 command, channel: %d, value: %d\n", client->id(), channel, value);
-          pca9685SetChannel(channel, value);
+          setChannel(channel, value);
         }
         else if (memcmp(PCA9685ALLCMD, data, sizeof(PCA9685ALLCMD) - 1) == 0)
         {
@@ -180,7 +180,7 @@ void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventTyp
             values[i] = (hexValue(*(p++)) * 16 * 16) + (hexValue(*(p++)) * 16) + hexValue(*(p++));
           }
           sprintf(strBuf, "[%u] PCA9685 all command, delayMs: %d, values: %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d\n", client->id(), delayMs, values[0], values[1], values[2], values[3], values[4], values[5], values[6], values[7], values[8], values[9], values[10], values[11], values[12], values[13], values[14], values[15]);
-          pca9685All(delayMs, values);
+          batchSetChannel(delayMs, values);
         }
         else
         {
@@ -410,8 +410,11 @@ void setup()
   });
 
 #ifdef CAMERA
+  server.on("/status", HTTP_GET, handleStatus);
   server.on("/snap", HTTP_GET, handleSnap);
   server.on("/stream", HTTP_GET, handleStream);
+  // e.g. http://fsbrowserplus.local/control?var=brightness&val=2
+  server.on("/control", HTTP_GET, handleControl);
 #endif
 
   //get heap status, analog input value and all GPIO statuses in one json call
@@ -421,20 +424,12 @@ void setup()
   });
 
   // set GPIO value
-  server.on("^\\/gpio\\/([0-9]+\\/([0-9]+)$", HTTP_GET, [](AsyncWebServerRequest *request) {
-    String gpio = request->pathArg(0);
-    String value = request->pathArg(1);
-    setGPIO(atoi(gpio.c_str()), atoi(value.c_str()));
-    request->send(200, "text/plain", "Set GPIO " + gpio + " to " + String(value));
-  });
+  // e.g. http://fsbrowserplus.local/gpio?pin=4&val=1
+  server.on("/gpio", HTTP_GET, handleGPIO);
 
   // set pca9685 value
-  server.on("^\\/pca9685\\/([0-9]+\\/([0-9]+)$", HTTP_GET, [](AsyncWebServerRequest *request) {
-    String channel = request->pathArg(0);
-    String value = request->pathArg(1);
-    pca9685SetChannel(atoi(channel.c_str()), atoi(value.c_str()));
-    request->send(200, "text/plain", "channel:" + channel + ",value:" + value);
-  });
+  // e.g. http://fsbrowserplus.local/pca9685?ch=0&val=360
+  server.on("/pca9685", HTTP_GET, handleSetChannel);
 
   server.begin();
   Serial.println("ESP Async Web Server started.");

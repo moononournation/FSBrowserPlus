@@ -15,15 +15,15 @@ static void gpioSetup()
     setPinMode(32, INPUT);
 }
 
-static void setGPIO(uint8_t gpio, uint8_t value)
+static void setGPIO(uint8_t pin, uint8_t value)
 {
-    if ((gpio < 34) && (value >= 0) && (value <= 1))
+    if ((pin < 34) && (value >= 0) && (value <= 1))
     {
-        if (gpioMode[gpio] != OUTPUT)
+        if (gpioMode[pin] != OUTPUT)
         {
-            setPinMode(gpio, OUTPUT);
+            setPinMode(pin, OUTPUT);
         }
-        digitalWrite(gpio, value);
+        digitalWrite(pin, value);
     }
 }
 
@@ -45,4 +45,14 @@ static String handleReadGPIO()
     json += "}";
 
     return json;
+}
+
+static void handleGPIO(AsyncWebServerRequest *request)
+{
+    String pin = request->arg("pin");
+    String value = request->arg("val");
+
+    setGPIO(atoi(pin.c_str()), atoi(value.c_str()));
+
+    request->send(200, "text/plain", "Set GPIO " + pin + " to " + value);
 }
