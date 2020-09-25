@@ -29,8 +29,8 @@
 #include <ESPAsyncWebServer.h>
 #include <SPIFFSEditor.h>
 
-const char *ssid = "YourAP";
-const char *password = "PleaseInputYourPasswordHere";
+const char *ssid = "Moon On ASUS";
+const char *password = "MoonOnAX1800";
 const char *hostname = "fsbrowserplus";
 const char *apPassword = "PleaseInputYourPasswordHere";
 const char *httpEditUserName = "admin";
