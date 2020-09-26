@@ -9,8 +9,14 @@
   or you can upload the contents of a folder if you CD in that folder and run the following command:
   for file in `ls -A1`; do curl -F "file=@$PWD/$file" fsbrowserPlus.local/edit; done
 
-  access the sample web page at http://fsbrowserPlus.local
-  edit the page by going to http://fsbrowserPlus.local/edit
+  Access the home page at http://fsbrowserPlus.local
+  Camera Setting Page: http://fsbrowserplus.local/ov2640.htm
+  Camera Snap: <http://fsbrowserplus.local/snap
+  Camera Stream: <http://fsbrowserplus.local/stream
+  Web Editor: <http://fsbrowserplus.local/edit
+  WebSocket Tester Page: <http://fsbrowserplus.local/wstester.htm
+  Pose Design Page: <http://fsbrowserplus.local/pose.htm
+  Graph Demo Page: <http://fsbrowserplus.local/graphs.htm
 */
 
 #include <ArduinoOTA.h>
@@ -29,9 +35,8 @@
 #include <ESPAsyncWebServer.h>
 #include <SPIFFSEditor.h>
 
-const char *ssid = "Moon On ASUS";
-const char *password = "MoonOnAX1800";
-const char *hostname = "fsbrowserplus";
+const char *ssid = "YourAP";
+const char *password = "PleaseInputYourPasswordHere";
 const char *apPassword = "PleaseInputYourPasswordHere";
 const char *httpEditUserName = "admin";
 const char *httpEditPassword = "PleaseInputYourPasswordHere";
