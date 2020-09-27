@@ -37,6 +37,7 @@
 
 const char *ssid = "YourAP";
 const char *password = "PleaseInputYourPasswordHere";
+const char *hostname = "fsbrowserplus";
 const char *apPassword = "PleaseInputYourPasswordHere";
 const char *httpEditUserName = "admin";
 const char *httpEditPassword = "PleaseInputYourPasswordHere";
