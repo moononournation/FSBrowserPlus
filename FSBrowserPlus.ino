@@ -23,6 +23,7 @@
 #include <DNSServer.h>
 #ifdef ESP32
 #include <FS.h>
+#include <FFat.h>
 #include <SPIFFS.h>
 #include <ESPmDNS.h>
 #include <WiFi.h>
@@ -53,9 +54,10 @@ const char *httpEditPassword = "PleaseInputYourPasswordHere";
 // #define CAMERA_MODEL_M5STACK_V2_PSRAM // M5Camera version B Has PSRAM
 // #define CAMERA_MODEL_M5STACK_WIDE // Has PSRAM
 // #define CAMERA_MODEL_ESP32_CAM // No PSRAM
-#define CAMERA_MODEL_M5STACK_ESP32CAM // No PSRAM
+// #define CAMERA_MODEL_M5STACK_ESP32CAM // No PSRAM
 // #define CAMERA_MODEL_AI_THINKER // Has PSRAM
 // #define CAMERA_MODEL_TTGO_T_JOURNAL // No PSRAM
+#define CAMERA_MODEL_JSZWY_CYIS
 #include "cameraAPI.h"
 
 #include "CaptiveRequestHandler.h"
@@ -183,7 +185,9 @@ void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventTyp
           uint16_t values[16];
           for (int i = 0; i < 16; i++)
           {
-            values[i] = (hexValue(*(p++)) * 16 * 16) + (hexValue(*(p++)) * 16) + hexValue(*(p++));
+            values[i] = (hexValue(*(p++)) * 16 * 16);
+            values[i] += (hexValue(*(p++)) * 16);
+            values[i] += hexValue(*(p++));
           }
           sprintf(strBuf, "[%u] PCA9685 all command, delayMs: %d, values: %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d\n", client->id(), delayMs, values[0], values[1], values[2], values[3], values[4], values[5], values[6], values[7], values[8], values[9], values[10], values[11], values[12], values[13], values[14], values[15]);
           batchSetChannel(delayMs, values);
@@ -261,14 +265,21 @@ void setup()
   Serial.setDebugOutput(true);
 
   Wire.begin(I2C_SDA_NUM, I2C_SCL_NUM);
-#ifdef CAMERA
-  cameraSetup();
-#endif
   gpioSetup();
   pca9685Setup();
+#ifdef ESP32
+  // if (SPIFFS.begin())
+  if (FFat.begin())
+#elif defined(ESP8266)
   if (SPIFFS.begin())
+#endif
   {
+#ifdef ESP32
+    // File root = SPIFFS.open("/");
+    File root = FFat.open("/");
+#elif defined(ESP8266)
     File root = SPIFFS.open("/");
+#endif
     File file = root.openNextFile();
     while (file)
     {
@@ -324,7 +335,12 @@ void setup()
 
   MDNS.addService("http", "tcp", 80);
 
+#ifdef ESP32
+  // SPIFFS.begin();
+  FFat.begin();
+#elif defined(ESP8266)
   SPIFFS.begin();
+#endif
 
   ws.onEvent(onWsEvent);
   server.addHandler(&ws);
@@ -335,7 +351,8 @@ void setup()
   server.addHandler(&events);
 
 #ifdef ESP32
-  server.addHandler(new SPIFFSEditor(SPIFFS, httpEditUserName, httpEditPassword));
+  // server.addHandler(new SPIFFSEditor(SPIFFS, httpEditUserName, httpEditPassword));
+  server.addHandler(new SPIFFSEditor(FFat, httpEditUserName, httpEditPassword));
 #elif defined(ESP8266)
   server.addHandler(new SPIFFSEditor(httpEditUserName, httpEditPassword));
 #endif
@@ -344,7 +361,12 @@ void setup()
     request->send(200, "text/plain", String(ESP.getFreeHeap()));
   });
 
+#ifdef ESP32
+  // server.serveStatic("/", SPIFFS, "/").setDefaultFile("index.htm");
+  server.serveStatic("/", FFat, "/").setDefaultFile("index.htm");
+#elif defined(ESP8266)
   server.serveStatic("/", SPIFFS, "/").setDefaultFile("index.htm");
+#endif
 
   server.onNotFound([](AsyncWebServerRequest *request) {
     Serial.printf("NOT_FOUND: ");

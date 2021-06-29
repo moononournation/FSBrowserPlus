@@ -7,78 +7,84 @@ static const char *_STREAM_CONTENT_TYPE = "multipart/x-mixed-replace;boundary=" 
 static const char *_STREAM_BOUNDARY = "\r\n--" PART_BOUNDARY "\r\n";
 static const char *_STREAM_PART = "Content-Type: image/jpeg\r\nContent-Length: %u\r\n\r\n";
 
-static void cameraSetup()
+static bool cameraLazyInitialized = false;
+static void cameraLazyInit()
 {
-    camera_config_t config;
-    config.ledc_channel = LEDC_CHANNEL_0;
-    config.ledc_timer = LEDC_TIMER_0;
-    config.pin_d0 = Y2_GPIO_NUM;
-    config.pin_d1 = Y3_GPIO_NUM;
-    config.pin_d2 = Y4_GPIO_NUM;
-    config.pin_d3 = Y5_GPIO_NUM;
-    config.pin_d4 = Y6_GPIO_NUM;
-    config.pin_d5 = Y7_GPIO_NUM;
-    config.pin_d6 = Y8_GPIO_NUM;
-    config.pin_d7 = Y9_GPIO_NUM;
-    config.pin_xclk = XCLK_GPIO_NUM;
-    config.pin_pclk = PCLK_GPIO_NUM;
-    config.pin_vsync = VSYNC_GPIO_NUM;
-    config.pin_href = HREF_GPIO_NUM;
-    config.pin_sscb_sda = SIOD_GPIO_NUM;
-    config.pin_sscb_scl = SIOC_GPIO_NUM;
-    config.pin_pwdn = PWDN_GPIO_NUM;
-    config.pin_reset = RESET_GPIO_NUM;
-    config.xclk_freq_hz = 20000000;
-    config.pixel_format = PIXFORMAT_JPEG;
-    //init with high specs to pre-allocate larger buffers
-    if (psramFound())
+    if (!cameraLazyInitialized)
     {
-        config.frame_size = FRAMESIZE_QVGA;
-        config.jpeg_quality = 4;
-        config.fb_count = 1; // disable continuous mode
-    }
-    else
-    {
-        config.frame_size = FRAMESIZE_QVGA;
-        config.jpeg_quality = 30;
-        config.fb_count = 1; // disable continuous mode
-    }
+        cameraLazyInitialized = true;
+
+        camera_config_t config;
+        config.ledc_channel = LEDC_CHANNEL_0;
+        config.ledc_timer = LEDC_TIMER_0;
+        config.pin_d0 = Y2_GPIO_NUM;
+        config.pin_d1 = Y3_GPIO_NUM;
+        config.pin_d2 = Y4_GPIO_NUM;
+        config.pin_d3 = Y5_GPIO_NUM;
+        config.pin_d4 = Y6_GPIO_NUM;
+        config.pin_d5 = Y7_GPIO_NUM;
+        config.pin_d6 = Y8_GPIO_NUM;
+        config.pin_d7 = Y9_GPIO_NUM;
+        config.pin_xclk = XCLK_GPIO_NUM;
+        config.pin_pclk = PCLK_GPIO_NUM;
+        config.pin_vsync = VSYNC_GPIO_NUM;
+        config.pin_href = HREF_GPIO_NUM;
+        config.pin_sscb_sda = SIOD_GPIO_NUM;
+        config.pin_sscb_scl = SIOC_GPIO_NUM;
+        config.pin_pwdn = PWDN_GPIO_NUM;
+        config.pin_reset = RESET_GPIO_NUM;
+        config.xclk_freq_hz = 20000000;
+        config.pixel_format = PIXFORMAT_JPEG;
+        //init with high specs to pre-allocate larger buffers
+        if (psramFound())
+        {
+            config.frame_size = FRAMESIZE_QVGA;
+            config.jpeg_quality = 4;
+            config.fb_count = 1; // disable continuous mode
+        }
+        else
+        {
+            config.frame_size = FRAMESIZE_QVGA;
+            config.jpeg_quality = 30;
+            config.fb_count = 1; // disable continuous mode
+        }
 
 #if defined(CAMERA_MODEL_ESP_EYE)
-    pinMode(13, INPUT_PULLUP);
-    pinMode(14, INPUT_PULLUP);
+        pinMode(13, INPUT_PULLUP);
+        pinMode(14, INPUT_PULLUP);
 #endif
 
-    // camera init
-    esp_err_t err = esp_camera_init(&config);
-    if (err != ESP_OK)
-    {
-        log_i("Camera init failed with error 0x%x", err);
-        return;
-    }
+        // camera init
+        esp_err_t err = esp_camera_init(&config);
+        if (err != ESP_OK)
+        {
+            log_i("Camera init failed with error 0x%x", err);
+            return;
+        }
 
-    sensor_t *s = esp_camera_sensor_get();
-    //initial sensors are flipped vertically and colors are a bit saturated
-    if (s->id.PID == OV3660_PID)
-    {
-        s->set_vflip(s, 1);       //flip it back
-        s->set_brightness(s, 1);  //up the blightness just a bit
-        s->set_saturation(s, -2); //lower the saturation
-    }
-    else
-    {
-        // s->set_brightness(s, 2);
-        // s->set_contrast(s, 2);
-        s->set_saturation(s, 2);
-        s->set_aec2(s, true);
-        s->set_gainceiling(s, GAINCEILING_128X);
-        s->set_lenc(s, true);
-    }
+        sensor_t *s = esp_camera_sensor_get();
+        //initial sensors are flipped vertically and colors are a bit saturated
+        if (s->id.PID == OV3660_PID)
+        {
+            s->set_vflip(s, 1);       //flip it back
+            s->set_brightness(s, 1);  //up the blightness just a bit
+            s->set_saturation(s, -2); //lower the saturation
+        }
+        else
+        {
+            // s->set_brightness(s, 2);
+            // s->set_contrast(s, 2);
+            s->set_saturation(s, 2);
+            s->set_aec2(s, true);
+            s->set_gainceiling(s, GAINCEILING_128X);
+            s->set_lenc(s, true);
+        }
 
 #if defined(CAMERA_MODEL_M5STACK_WIDE)
-    s->set_vflip(s, 1);
-    s->set_hmirror(s, 1);
+        s->set_vflip(s, 1);
+        s->set_hmirror(s, 1);
 #endif
+    }
 }
 
 static camera_fb_t *fb = NULL;
@@ -156,7 +162,7 @@ static size_t streamChunkCallback(uint8_t *buffer, size_t maxLen, size_t index)
 
 static void setControl(String variable, int value)
 {
-    sensor_t * s = esp_camera_sensor_get();
+    sensor_t *s = esp_camera_sensor_get();
     if (variable.startsWith("framesize"))
     {
         s->set_framesize(s, (framesize_t)value);
@@ -257,37 +263,39 @@ static void setControl(String variable, int value)
 
 static void handleStatus(AsyncWebServerRequest *request)
 {
+    cameraLazyInit();
+
     static char json_response[1024];
 
-    sensor_t * s = esp_camera_sensor_get();
-    char * p = json_response;
+    sensor_t *s = esp_camera_sensor_get();
+    char *p = json_response;
     *p++ = '{';
 
-    p+=sprintf(p, "\"framesize\":%u,", s->status.framesize);
-    p+=sprintf(p, "\"quality\":%u,", s->status.quality);
-    p+=sprintf(p, "\"brightness\":%d,", s->status.brightness);
-    p+=sprintf(p, "\"contrast\":%d,", s->status.contrast);
-    p+=sprintf(p, "\"saturation\":%d,", s->status.saturation);
-    p+=sprintf(p, "\"sharpness\":%d,", s->status.sharpness);
-    p+=sprintf(p, "\"special_effect\":%u,", s->status.special_effect);
-    p+=sprintf(p, "\"wb_mode\":%u,", s->status.wb_mode);
-    p+=sprintf(p, "\"awb\":%u,", s->status.awb);
-    p+=sprintf(p, "\"awb_gain\":%u,", s->status.awb_gain);
-    p+=sprintf(p, "\"aec\":%u,", s->status.aec);
-    p+=sprintf(p, "\"aec2\":%u,", s->status.aec2);
-    p+=sprintf(p, "\"ae_level\":%d,", s->status.ae_level);
-    p+=sprintf(p, "\"aec_value\":%u,", s->status.aec_value);
-    p+=sprintf(p, "\"agc\":%u,", s->status.agc);
-    p+=sprintf(p, "\"agc_gain\":%u,", s->status.agc_gain);
-    p+=sprintf(p, "\"gainceiling\":%u,", s->status.gainceiling);
-    p+=sprintf(p, "\"bpc\":%u,", s->status.bpc);
-    p+=sprintf(p, "\"wpc\":%u,", s->status.wpc);
-    p+=sprintf(p, "\"raw_gma\":%u,", s->status.raw_gma);
-    p+=sprintf(p, "\"lenc\":%u,", s->status.lenc);
-    p+=sprintf(p, "\"vflip\":%u,", s->status.vflip);
-    p+=sprintf(p, "\"hmirror\":%u,", s->status.hmirror);
-    p+=sprintf(p, "\"dcw\":%u,", s->status.dcw);
-    p+=sprintf(p, "\"colorbar\":%u", s->status.colorbar);
+    p += sprintf(p, "\"framesize\":%u,", s->status.framesize);
+    p += sprintf(p, "\"quality\":%u,", s->status.quality);
+    p += sprintf(p, "\"brightness\":%d,", s->status.brightness);
+    p += sprintf(p, "\"contrast\":%d,", s->status.contrast);
+    p += sprintf(p, "\"saturation\":%d,", s->status.saturation);
+    p += sprintf(p, "\"sharpness\":%d,", s->status.sharpness);
+    p += sprintf(p, "\"special_effect\":%u,", s->status.special_effect);
+    p += sprintf(p, "\"wb_mode\":%u,", s->status.wb_mode);
+    p += sprintf(p, "\"awb\":%u,", s->status.awb);
+    p += sprintf(p, "\"awb_gain\":%u,", s->status.awb_gain);
+    p += sprintf(p, "\"aec\":%u,", s->status.aec);
+    p += sprintf(p, "\"aec2\":%u,", s->status.aec2);
+    p += sprintf(p, "\"ae_level\":%d,", s->status.ae_level);
+    p += sprintf(p, "\"aec_value\":%u,", s->status.aec_value);
+    p += sprintf(p, "\"agc\":%u,", s->status.agc);
+    p += sprintf(p, "\"agc_gain\":%u,", s->status.agc_gain);
+    p += sprintf(p, "\"gainceiling\":%u,", s->status.gainceiling);
+    p += sprintf(p, "\"bpc\":%u,", s->status.bpc);
+    p += sprintf(p, "\"wpc\":%u,", s->status.wpc);
+    p += sprintf(p, "\"raw_gma\":%u,", s->status.raw_gma);
+    p += sprintf(p, "\"lenc\":%u,", s->status.lenc);
+    p += sprintf(p, "\"vflip\":%u,", s->status.vflip);
+    p += sprintf(p, "\"hmirror\":%u,", s->status.hmirror);
+    p += sprintf(p, "\"dcw\":%u,", s->status.dcw);
+    p += sprintf(p, "\"colorbar\":%u", s->status.colorbar);
     *p++ = '}';
     *p++ = 0;
     AsyncWebServerResponse *response = request->beginResponse(200, "application/json", json_response);
@@ -297,6 +305,8 @@ static void handleStatus(AsyncWebServerRequest *request)
 
 static void handleSnap(AsyncWebServerRequest *request)
 {
+        cameraLazyInit();
+
     camera_fb_t *fb = NULL;
 
     fb = esp_camera_fb_get();
@@ -315,6 +325,8 @@ static void handleSnap(AsyncWebServerRequest *request)
 
 static void handleStream(AsyncWebServerRequest *request)
 {
+    cameraLazyInit();
+
     AsyncWebServerResponse *response = request->beginChunkedResponse(_STREAM_CONTENT_TYPE, streamChunkCallback);
     response->addHeader("Access-Control-Allow-Origin", "*");
     request->send(response);
@@ -322,6 +334,8 @@ static void handleStream(AsyncWebServerRequest *request)
 
 static void handleControl(AsyncWebServerRequest *request)
 {
+    cameraLazyInit();
+
     String variable = request->arg("var");
     String value = request->arg("val");
 
