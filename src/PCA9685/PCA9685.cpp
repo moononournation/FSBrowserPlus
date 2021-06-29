@@ -138,7 +138,7 @@ void PCA9685::setFrequency(uint16_t freq)
 */
 uint16_t PCA9685::getFrequency()
 {
-  uint8_t prescale;
+  uint8_t prescale = 0;
   Wire.beginTransmission((uint8_t)_address);
   Wire.write((uint8_t)PCA9685_PRESCALE);
   Wire.endTransmission();
