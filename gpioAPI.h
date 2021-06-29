@@ -17,7 +17,7 @@ static void gpioSetup()
 
 static void setGPIO(uint8_t pin, uint8_t value)
 {
-    if ((pin < 34) && (value >= 0) && (value <= 1))
+    if ((pin < 34) && (value <= 1))
     {
         if (gpioMode[pin] != OUTPUT)
         {

@@ -19,7 +19,7 @@ static void pca9685Setup()
 
 static void setChannel(uint8_t channel, uint16_t value)
 {
-    if ((channel < 16) && (value >= 0) && (value < 4096))
+    if ((channel < 16) && (value < 4096))
     {
         pca9685.setChannel(channel, value);
         delay(500);
