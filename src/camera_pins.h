@@ -244,6 +244,8 @@
 #define PCLK_GPIO_NUM 33
 
 #define Headlamp_Pin 4
+
+#define MOTOR
 #define MotorR_A_Pin 9
 #define MotorR_B_Pin 10
 #define MotorL_A_Pin 18

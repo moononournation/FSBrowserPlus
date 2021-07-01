@@ -19,6 +19,13 @@
   Graph Demo Page: <http://fsbrowserplus.local/graphs.htm
 */
 
+const char *ssid = "YourAP";
+const char *password = "PleaseInputYourPasswordHere";
+const char *hostname = "fsbrowserplus";
+const char *apPassword = "PleaseInputYourPasswordHere";
+const char *httpEditUserName = "admin";
+const char *httpEditPassword = "PleaseInputYourPasswordHere";
+
 #include <ArduinoOTA.h>
 #include <DNSServer.h>
 #ifdef ESP32
@@ -35,15 +42,10 @@
 #endif
 #include <ESPAsyncWebServer.h>
 #include <SPIFFSEditor.h>
-
-const char *ssid = "YourAP";
-const char *password = "PleaseInputYourPasswordHere";
-const char *hostname = "fsbrowserplus";
-const char *apPassword = "PleaseInputYourPasswordHere";
-const char *httpEditUserName = "admin";
-const char *httpEditPassword = "PleaseInputYourPasswordHere";
+#include "CaptiveRequestHandler.h"
 
 #define GPIOCMD "GPIO:"
+#define MOTORCMD "MOTOR:"
 #define PCA9685CMD "PCA9685:"
 #define PCA9685ALLCMD "PCA9685ALL:"
 
@@ -60,8 +62,11 @@ const char *httpEditPassword = "PleaseInputYourPasswordHere";
 #define CAMERA_MODEL_JSZWY_CYIS
 #include "cameraAPI.h"
 
-#include "CaptiveRequestHandler.h"
 #include "gpioAPI.h"
+
+#ifdef MOTOR
+#include "motorAPI.h"
+#endif
 
 #ifndef I2C_SDA_NUM // defined according to camera model
 #define I2C_SDA_NUM 21
@@ -159,6 +164,37 @@ void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventTyp
           sprintf(strBuf, "[%u] GPIO command, gpio: %d, value: %d\n", client->id(), gpio, value);
           setGPIO(gpio, value);
         }
+#ifdef MOTOR
+        else if (memcmp(MOTORCMD, data, sizeof(MOTORCMD) - 1) == 0)
+        {
+          uint8_t *p = data + sizeof(MOTORCMD) - 1;
+          uint8_t la = hexValue(*(p++));
+          if (*p != ':')
+          {
+            la = (la * 16) + hexValue(*(p++));
+          }
+          p++; // skip seperator
+          uint8_t lb = hexValue(*(p++));
+          if (*p != ':')
+          {
+            lb = (lb * 16) + hexValue(*(p++));
+          }
+          p++; // skip seperator
+          uint8_t ra = hexValue(*(p++));
+          if (*p != ':')
+          {
+            ra = (ra * 16) + hexValue(*(p++));
+          }
+          p++; // skip seperator
+          uint8_t rb = hexValue(*(p++));
+          if (*p != ':')
+          {
+            rb = (rb * 16) + hexValue(*(p++));
+          }
+          sprintf(strBuf, "[%u] Motor command, la: %d, lb: %d, ra: %d, rb: %d\n", client->id(), la, lb, ra, rb);
+          setMotor(la, lb, ra, rb);
+        }
+#endif
         else if (memcmp(PCA9685CMD, data, sizeof(PCA9685CMD) - 1) == 0)
         {
           uint8_t *p = data + sizeof(PCA9685CMD) - 1;
@@ -266,6 +302,9 @@ void setup()
 
   Wire.begin(I2C_SDA_NUM, I2C_SCL_NUM);
   gpioSetup();
+#ifdef MOTOR
+  motorSetup();
+#endif
   pca9685Setup();
 #ifdef ESP32
   // if (SPIFFS.begin())
@@ -454,6 +493,12 @@ void setup()
   // set GPIO value
   // e.g. http://fsbrowserplus.local/gpio?pin=4&val=1
   server.on("/gpio", HTTP_GET, handleGPIO);
+
+#ifdef MOTOR
+  // set Motor value
+  // e.g. http://fsbrowserplus.local/motor?la=127&lb=0&ra=127&rb=0
+  server.on("/motor", HTTP_GET, handleMotor);
+#endif
 
   // set pca9685 value
   // e.g. http://fsbrowserplus.local/pca9685?ch=0&val=360
