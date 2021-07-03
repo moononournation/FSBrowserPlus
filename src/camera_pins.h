@@ -251,6 +251,4 @@
 #define MotorL_A_Pin 18
 #define MotorL_B_Pin 23
 
-#else
-#error "Camera model not selected"
 #endif
