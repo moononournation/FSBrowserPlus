@@ -25,6 +25,8 @@ const char *hostname = "fsbrowserplus";
 const char *apPassword = "PleaseInputYourPasswordHere";
 const char *httpEditUserName = "admin";
 const char *httpEditPassword = "PleaseInputYourPasswordHere";
+const uint8_t analogPin = 32;
+const uint8_t digitalInputList[] = {0, 2, 5, 27};
 
 #include <ArduinoOTA.h>
 #include <DNSServer.h>
@@ -59,7 +61,7 @@ const char *httpEditPassword = "PleaseInputYourPasswordHere";
 // #define CAMERA_MODEL_M5STACK_ESP32CAM // No PSRAM
 // #define CAMERA_MODEL_AI_THINKER // Has PSRAM
 // #define CAMERA_MODEL_TTGO_T_JOURNAL // No PSRAM
-#define CAMERA_MODEL_JSZWY_CYIS
+// #define CAMERA_MODEL_JSZWY_CYIS
 #include "cameraAPI.h"
 
 #include "gpioAPI.h"

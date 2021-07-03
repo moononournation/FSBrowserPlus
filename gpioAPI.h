@@ -1,4 +1,4 @@
-static uint8_t gpioMode[40] = {};
+static uint8_t gpioMode[NUM_DIGITAL_PINS] = {0xFF};
 
 static void setPinMode(uint8_t pin, uint8_t mode)
 {
@@ -8,16 +8,16 @@ static void setPinMode(uint8_t pin, uint8_t mode)
 
 static void gpioSetup()
 {
-    setPinMode(0, INPUT);
-    setPinMode(2, INPUT);
-    setPinMode(5, INPUT);
-    setPinMode(27, INPUT);
-    setPinMode(32, INPUT);
+    setPinMode(analogPin, ANALOG);
+    for (int i = 0; i < sizeof(digitalInputList); i++)
+    {
+        setPinMode(digitalInputList[i], INPUT);
+    }
 }
 
 static void setGPIO(uint8_t pin, uint8_t value)
 {
-    if ((pin < 34) && (value <= 1))
+    if ((pin < NUM_DIGITAL_PINS) && (value <= 1))
     {
         if (gpioMode[pin] != OUTPUT)
         {
@@ -32,7 +32,7 @@ static String handleReadGPIO()
 {
     String json = "{";
     json += "\"heap\":" + String(ESP.getFreeHeap());
-    json += ", \"analog\":" + String(analogRead(32));
+    json += ", \"analog\":" + String(analogRead(analogPin));
     int32_t v = 0;
     for (int i = 0; i < 32; i++)
     {
