@@ -19,6 +19,21 @@
   Graph Demo Page: <http://fsbrowserplus.local/graphs.htm
 */
 
+#include <ESPAsyncWebServer.h>
+
+// Select camera model
+// #define CAMERA_MODEL_WROVER_KIT // Has PSRAM
+// #define CAMERA_MODEL_ESP_EYE // Has PSRAM
+// #define CAMERA_MODEL_M5STACK_PSRAM // Has PSRAM
+// #define CAMERA_MODEL_M5STACK_V2_PSRAM // M5Camera version B Has PSRAM
+// #define CAMERA_MODEL_M5STACK_WIDE // Has PSRAM
+// #define CAMERA_MODEL_ESP32_CAM // No PSRAM
+// #define CAMERA_MODEL_M5STACK_ESP32CAM // No PSRAM
+// #define CAMERA_MODEL_AI_THINKER // Has PSRAM
+// #define CAMERA_MODEL_TTGO_T_JOURNAL // No PSRAM
+#define CAMERA_MODEL_JSZWY_CYIS
+#include "cameraAPI.h"
+
 const char *ssid = "YourAP";
 const char *password = "PleaseInputYourPasswordHere";
 const char *hostname = "fsbrowserplus";
@@ -26,7 +41,11 @@ const char *apPassword = "PleaseInputYourPasswordHere";
 const char *httpEditUserName = "admin";
 const char *httpEditPassword = "PleaseInputYourPasswordHere";
 const uint8_t analogPin = 32;
+#ifdef CAMERA
+const uint8_t digitalInputList[] = { 0 };
+#else
 const uint8_t digitalInputList[] = {0, 2, 5, 27};
+#endif
 
 #include <ArduinoOTA.h>
 #include <DNSServer.h>
@@ -42,7 +61,6 @@ const uint8_t digitalInputList[] = {0, 2, 5, 27};
 #include <ESPAsyncTCP.h>
 #include <ESP8266mDNS.h>
 #endif
-#include <ESPAsyncWebServer.h>
 #include <SPIFFSEditor.h>
 #include "CaptiveRequestHandler.h"
 
@@ -50,19 +68,6 @@ const uint8_t digitalInputList[] = {0, 2, 5, 27};
 #define MOTORCMD "MOTOR:"
 #define PCA9685CMD "PCA9685:"
 #define PCA9685ALLCMD "PCA9685ALL:"
-
-// Select camera model
-// #define CAMERA_MODEL_WROVER_KIT // Has PSRAM
-// #define CAMERA_MODEL_ESP_EYE // Has PSRAM
-// #define CAMERA_MODEL_M5STACK_PSRAM // Has PSRAM
-// #define CAMERA_MODEL_M5STACK_V2_PSRAM // M5Camera version B Has PSRAM
-// #define CAMERA_MODEL_M5STACK_WIDE // Has PSRAM
-// #define CAMERA_MODEL_ESP32_CAM // No PSRAM
-// #define CAMERA_MODEL_M5STACK_ESP32CAM // No PSRAM
-// #define CAMERA_MODEL_AI_THINKER // Has PSRAM
-// #define CAMERA_MODEL_TTGO_T_JOURNAL // No PSRAM
-// #define CAMERA_MODEL_JSZWY_CYIS
-#include "cameraAPI.h"
 
 #include "gpioAPI.h"
 

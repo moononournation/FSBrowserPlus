@@ -2,6 +2,7 @@
 <html>
 
 <head>
+    <meta charset="utf-8">
     <meta name='viewport' content='user-scalable=no,initial-scale=1.0,maximum-scale=1.0' />
     <style>
         body {
@@ -9,17 +10,19 @@
             background-color: #ccc;
         }
 
-        #main {
+        #touchcanvas {
             margin: 0 auto 0 auto;
         }
     </style>
     <script>
-        function nw() { return new WebSocket('ws://' + location.hostname + '/ws', ['arduino']); }
         window.onload = function () {
+            var sentMsg = '';
+            var pendingStop = false;
+            function nw() { var ws = new WebSocket('ws://' + location.hostname + '/ws', ['arduino']); ws.onmessage = function (e) { sentMsg = ''; if (pendingStop) d(128, 128); }; return ws; }
             var ws = nw();
             var md = false;
             document.ontouchmove = function (e) { e.preventDefault(); };
-            var cv = document.getElementById('main');
+            var cv = document.getElementById('touchcanvas');
             var ctop = cv.offsetTop;
             var cleft = cv.offsetLeft;
             var c = cv.getContext('2d');
@@ -41,49 +44,55 @@
                 }
             }
             function d(x, y) {
-                c.beginPath();
-                c.fillStyle = 'rgba(96,96,208,0.5)';
-                c.arc(x, y, 5, 0, Math.PI * 2, true);
-                c.fill();
-                c.closePath();
-                var la = 0, lb = 0, ra = 0, rb = 0;
-                if (y < 112) { // forward
-                    if (x > 144) {
-                        lb = (255 - y);
-                        rb = lb - (x - 128);
-                    } else if (x < 112) {
-                        rb = (255 - y);
-                        lb = rb - (128 - x);
-                    } else {
-                        lb = (255 - y);
-                        rb = lb;
-                    }
-                } else if (y > 144) { // backward
-                    if (x > 144) {
-                        la = y;
-                        ra = la - (x - 128);
-                    } else if (x < 112) {
-                        ra = y;
-                        la = ra - (128 - x);
-                    } else {
-                        la = y;
-                        ra = la;
-                    }
-                } else {
-                    if (x > 144) {
-                        lb = x;
-                        ra = lb;
-                    } else if (x < 112) {
-                        rb = (255 - x);
-                        la = rb;
-                    }
-                }
-                la = '0' + la.toString(16);
-                lb = '0' + lb.toString(16);
-                ra = '0' + ra.toString(16);
-                rb = '0' + rb.toString(16);
                 if (ws.readyState === ws.CLOSED) { ws = nw(); }
-                ws.send('MOTOR:' + la.substr(-2) + ':' + lb.substr(-2) + ':' + ra.substr(-2) + ':' + rb.substr(-2));
+                if (sentMsg == '') {
+                    var la = 0, lb = 0, ra = 0, rb = 0;
+                    if (y < 112) { // forward
+                        if (x > 144) {
+                            lb = (255 - y);
+                            rb = lb - (x - 128);
+                        } else if (x < 112) {
+                            rb = (255 - y);
+                            lb = rb - (128 - x);
+                        } else {
+                            lb = (255 - y);
+                            rb = lb;
+                        }
+                    } else if (y > 144) { // backward
+                        if (x > 144) {
+                            la = y;
+                            ra = la - (x - 128);
+                        } else if (x < 112) {
+                            ra = y;
+                            la = ra - (128 - x);
+                        } else {
+                            la = y;
+                            ra = la;
+                        }
+                    } else {
+                        if (x > 144) {
+                            lb = x;
+                            ra = lb;
+                        } else if (x < 112) {
+                            rb = (255 - x);
+                            la = rb;
+                        }
+                    }
+                    la = '0' + la.toString(16);
+                    lb = '0' + lb.toString(16);
+                    ra = '0' + ra.toString(16);
+                    rb = '0' + rb.toString(16);
+                    sentMsg = 'MOTOR:' + la.substr(-2) + ':' + lb.substr(-2) + ':' + ra.substr(-2) + ':' + rb.substr(-2);
+                    ws.send(sentMsg);
+                    c.beginPath();
+                    c.fillStyle = 'rgba(96,96,208,0.5)';
+                    c.arc(x, y, 5, 0, Math.PI * 2, true);
+                    c.fill();
+                    c.closePath();
+                    pendingStop = false;
+                } else if ((x == 128) && (y == 128)) {
+                    pendingStop = true;
+                }
             }
             cv.ontouchstart = function (e) {
                 clr();
@@ -109,7 +118,7 @@
 
 <body>
     <h1>Touch Remote</h1>
-    <canvas id='main' width='255' height='255'></canvas>
+    <canvas id='touchcanvas' width='255' height='255'></canvas>
 </body>
 
 </html>
