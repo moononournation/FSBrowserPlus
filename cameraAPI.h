@@ -33,7 +33,7 @@ static void cameraLazyInit()
         config.pin_sscb_scl = SIOC_GPIO_NUM;
         config.pin_pwdn = PWDN_GPIO_NUM;
         config.pin_reset = RESET_GPIO_NUM;
-        config.xclk_freq_hz = 20000000;
+        config.xclk_freq_hz = 10000000;
         config.pixel_format = PIXFORMAT_JPEG;
         //init with high specs to pre-allocate larger buffers
         if (psramFound())
@@ -45,7 +45,7 @@ static void cameraLazyInit()
         else
         {
             config.frame_size = FRAMESIZE_QVGA;
-            config.jpeg_quality = 30;
+            config.jpeg_quality = 10;
             config.fb_count = 1; // disable continuous mode
         }
 
@@ -81,6 +81,10 @@ static void cameraLazyInit()
         }
 
 #if defined(CAMERA_MODEL_M5STACK_WIDE)
+        s->set_vflip(s, 1);
+        s->set_hmirror(s, 1);
+#endif
+#if defined(CAMERA_MODEL_JSZWY_CYIS)
         s->set_vflip(s, 1);
         s->set_hmirror(s, 1);
 #endif
@@ -305,7 +309,7 @@ static void handleStatus(AsyncWebServerRequest *request)
 
 static void handleSnap(AsyncWebServerRequest *request)
 {
-        cameraLazyInit();
+    cameraLazyInit();
 
     camera_fb_t *fb = NULL;
 
