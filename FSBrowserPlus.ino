@@ -9,7 +9,7 @@
   or you can upload the contents of a folder if you CD in that folder and run the following command:
   for file in `ls -A1`; do curl -F "file=@$PWD/$file" fsbrowserPlus.local/edit; done
 
-  Access the home page at http://fsbrowserPlus.local
+  Access the home page at http://fsbrowserplus.local
   Camera Setting Page: http://fsbrowserplus.local/ov2640.htm
   Camera Snap: <http://fsbrowserplus.local/snap
   Camera Stream: <http://fsbrowserplus.local/stream
