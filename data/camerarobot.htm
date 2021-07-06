@@ -58,7 +58,7 @@
             width: 100%;
             height: auto;
             border-radius: 4px;
-            margin-top: 8px;
+            margin: 4px auto 0 auto;
         }
 
         figure canvas {
@@ -66,7 +66,7 @@
             width: 100%;
             height: auto;
             border-radius: 4px;
-            margin: 8px auto 0 auto;
+            margin: 4px auto 0 auto;
         }
 
         @media (min-width: 800px) and (orientation:landscape) {
@@ -130,8 +130,8 @@
         }
 
         .header-group h2 {
-            font-size: 20px;
-            margin: 0 32px 0 72px;
+            font-size: 16px;
+            margin: 0;
         }
 
         .header-group input {
@@ -354,13 +354,12 @@
 <body>
     <section class="main">
         <div class="header-group">
-            <label for="nav-toggle-cb" id="nav-toggle">&#9776;</label>
-            <h2>Camera Robot</h2>
-            <label for="led">&#9728;</label>
+            <label for="nav-toggle-cb" id="nav-toggle">&#9776;&nbsp;Camera Robot</label>
             <div class="switch">
                 <input id="led" type="checkbox" class="led-action">
                 <label class="slider" for="led"></label>
             </div>
+            <label for="led">&#9728;</label>
         </div>
         <div id="content">
             <div id="sidebar">
