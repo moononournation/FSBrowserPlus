@@ -5,18 +5,22 @@
   https://github.com/me-no-dev/ESPAsyncWebServer.git
   https://github.com/me-no-dev/AsyncTCP.git
 
-  upload the contents of the data folder with MkSPIFFS Tool ("ESP32 Sketch Data Upload" in Tools menu in Arduino IDE)
-  or you can upload the contents of a folder if you CD in that folder and run the following command:
-  for file in `ls -A1`; do curl -F "file=@$PWD/$file" fsbrowserPlus.local/edit; done
+  upload the contents of the data folder with:
+  Option 1: "ESP32 Sketch Data Upload" in Tools menu in Arduino IDE
+  source: https://github.com/lorol/arduino-esp32fs-plugin
+  Option 2: upload the file contents with curl command
+  CD to data folder and run command: for file in `ls -A1`; do curl -F "file=@$PWD/$file" fsbrowserPlus.local/edit; done
 
-  Access the home page at http://fsbrowserplus.local
-  Camera Setting Page: http://fsbrowserplus.local/ov2640.htm
-  Camera Snap: <http://fsbrowserplus.local/snap
-  Camera Stream: <http://fsbrowserplus.local/stream
-  Web Editor: <http://fsbrowserplus.local/edit
-  WebSocket Tester Page: <http://fsbrowserplus.local/wstester.htm
-  Pose Design Page: <http://fsbrowserplus.local/pose.htm
-  Graph Demo Page: <http://fsbrowserplus.local/graphs.htm
+  Access the home page: http://fsbrowserplus.local
+  A simple web editor: http://fsbrowserplus.local/edit
+  Camera Setting: http://fsbrowserplus.local/ov2640.htm
+  Camera Snap: http://fsbrowserplus.local/snap
+  Camera Stream: http://fsbrowserplus.local/stream
+  WebSocket Tester: http://fsbrowserplus.local/wstester.htm
+  Robot Cat Pose Design: http://fsbrowserplus.local/pose.htm
+  Graph Demo: http://fsbrowserplus.local/graphs.htm
+  Touch Remote: http://fsbrowserplus.local/touchremote.htm
+  Camera Robot: http://fsbrowserplus.local/camerarobot.htm
 */
 
 #include <ESPAsyncWebServer.h>
