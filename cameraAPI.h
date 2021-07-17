@@ -38,15 +38,15 @@ static void cameraLazyInit()
         //init with high specs to pre-allocate larger buffers
         if (psramFound())
         {
-            config.frame_size = FRAMESIZE_QVGA;
+            config.frame_size = FRAMESIZE_UXGA;
             config.jpeg_quality = 4;
-            config.fb_count = 1; // disable continuous mode
+            config.fb_count = 2; // disable continuous mode
         }
         else
         {
             config.frame_size = FRAMESIZE_QVGA;
             config.jpeg_quality = 10;
-            config.fb_count = 1; // disable continuous mode
+            config.fb_count = 2; // disable continuous mode
         }
 
 #if defined(CAMERA_MODEL_ESP_EYE)
@@ -68,7 +68,7 @@ static void cameraLazyInit()
         {
             s->set_vflip(s, 1);       //flip it back
             s->set_brightness(s, 1);  //up the blightness just a bit
-            s->set_saturation(s, -2); //lower the saturation
+            s->set_saturation(s, -1); //lower the saturation
         }
         else
         {
@@ -274,7 +274,34 @@ static void handleStatus(AsyncWebServerRequest *request)
     sensor_t *s = esp_camera_sensor_get();
     char *p = json_response;
     *p++ = '{';
-
+    if (s->id.PID == NT99141_PID)
+    {
+        p += sprintf(p, "\"PID\":\"NT99141_PID\",");
+    }
+    else if (s->id.PID == OV9650_PID)
+    {
+        p += sprintf(p, "\"PID\":\"OV9650_PID\",");
+    }
+    else if (s->id.PID == OV7725_PID)
+    {
+        p += sprintf(p, "\"PID\":\"OV7725_PID\",");
+    }
+    else if (s->id.PID == OV2640_PID)
+    {
+        p += sprintf(p, "\"PID\":\"OV2640_PID\",");
+    }
+    else if (s->id.PID == OV3660_PID)
+    {
+        p += sprintf(p, "\"PID\":\"OV3660_PID\",");
+    }
+    else if (s->id.PID == OV5640_PID)
+    {
+        p += sprintf(p, "\"PID\":\"OV5640_PID\",");
+    }
+    else if (s->id.PID == OV7670_PID)
+    {
+        p += sprintf(p, "\"PID\":\"OV7670_PID\",");
+    }
     p += sprintf(p, "\"framesize\":%u,", s->status.framesize);
     p += sprintf(p, "\"quality\":%u,", s->status.quality);
     p += sprintf(p, "\"brightness\":%d,", s->status.brightness);
