@@ -128,114 +128,101 @@
   <div id="messages"></div>
 
   <script>
-    var url = 'ws://' + location.host + '/ws';
-    var socket = undefined;
-    var sendingTimestamp = undefined;
-    var isConnected = false;
-
-    var restBtn = document.getElementById("restBtn");
-    var servo0 = document.getElementById("servo0");
-    var servo1 = document.getElementById("servo1");
-    var servo2 = document.getElementById("servo2");
-    var servo3 = document.getElementById("servo3");
-    var servo4 = document.getElementById("servo4");
-    var servo5 = document.getElementById("servo5");
-    var servo6 = document.getElementById("servo6");
-    var servo10 = document.getElementById("servo10");
-    var servo11 = document.getElementById("servo11");
-    var servo12 = document.getElementById("servo12");
-    var servo13 = document.getElementById("servo13");
-    var servo14 = document.getElementById("servo14");
-    var servo15 = document.getElementById("servo15");
-    var output = document.getElementById("output");
-
-    // show message in div#messages
-    function showMessage(message) {
-      var messageElem = document.createElement('div');
-      messageElem.textContent = message;
-      document.getElementById('messages').prepend(messageElem);
-    }
-
-    function newSocket() {
-      socket = new WebSocket(url);
-      // handle incoming messages
-      socket.onmessage = function (event) {
-        if (!isConnected) {
-          isConnected = true;
-        }
-        showMessage(event.data);
-      };
-
-      socket.onclose = function (event) {
-        socket = undefined;
-        isConnected = false;
-        sendingTimestamp = undefined;
-        showMessage("[Closed]" + event.code);
-      };
-
-      socket.onerror = function (err) {
-        socket.close();
-        showMessage('[Error]' + err.message);
-      };
-    }
-
     function toHex(value) {
       return parseInt(value).toString(16).padStart(3, '0');
     }
 
-    function sendMessage(outgoingMessage) {
-      output.innerHTML = outgoingMessage;
-      if (socket) {
-        if (isConnected) {
-          if ((!sendingTimestamp) || ((Date.now() - sendingTimestamp) > 1000)) {
-            sendingTimestamp = Date.now();
-            socket.send(outgoingMessage);
-          }
-        }
-      } else {
-        newSocket();
+    window.onload = function () {
+      let ws = undefined;
+      let isSending = false;
+      let pendingMsg = false;
+
+      let restBtn = document.getElementById("restBtn");
+      let servo0 = document.getElementById("servo0");
+      let servo1 = document.getElementById("servo1");
+      let servo2 = document.getElementById("servo2");
+      let servo3 = document.getElementById("servo3");
+      let servo4 = document.getElementById("servo4");
+      let servo5 = document.getElementById("servo5");
+      let servo6 = document.getElementById("servo6");
+      let servo10 = document.getElementById("servo10");
+      let servo11 = document.getElementById("servo11");
+      let servo12 = document.getElementById("servo12");
+      let servo13 = document.getElementById("servo13");
+      let servo14 = document.getElementById("servo14");
+      let servo15 = document.getElementById("servo15");
+      let output = document.getElementById("output");
+
+      function showMessage(message) {
+        let messageElem = document.createElement('div');
+        messageElem.textContent = message;
+        document.getElementById('messages').prepend(messageElem);
       }
-    }
 
-    restBtn.onclick = function (event) {
-      sendMessage("PCA9685ALL:0:000000000000000000000000000000000000000000000000");
-    }
+      function sendMessage(outgoingMessage) {
+        if ((!ws) || (ws.readyState === ws.CLOSED)) { ws = nws(); }
+        if (!isSending) {
+          output.innerHTML = outgoingMessage;
+          isSending = true;
+          ws.send(outgoingMessage);
+        } else {
+          pendingMsg = true;
+          output.innerHTML = "pending";
+        }
+      }
 
-    function sendPose() {
-      var outgoingMessage = "PCA9685ALL:0:"
-        + toHex(servo0.value)
-        + toHex(servo1.value)
-        + toHex(servo2.value)
-        + toHex(servo3.value)
-        + toHex(servo4.value)
-        + toHex(servo5.value)
-        + toHex(servo6.value)
-        + toHex(0)
-        + toHex(0)
-        + toHex(0)
-        + toHex(servo10.value)
-        + toHex(servo11.value)
-        + toHex(servo12.value)
-        + toHex(servo13.value)
-        + toHex(servo14.value)
-        + toHex(servo15.value);
-      sendMessage(outgoingMessage);
-    }
-    servo0.oninput = sendPose;
-    servo1.oninput = sendPose;
-    servo2.oninput = sendPose;
-    servo3.oninput = sendPose;
-    servo4.oninput = sendPose;
-    servo5.oninput = sendPose;
-    servo6.oninput = sendPose;
-    servo10.oninput = sendPose;
-    servo11.oninput = sendPose;
-    servo12.oninput = sendPose;
-    servo13.oninput = sendPose;
-    servo14.oninput = sendPose;
-    servo15.oninput = sendPose;
+      function sendPose() {
+        let outgoingMessage = "PCA9685ALL:0:"
+          + toHex(servo0.value)
+          + toHex(servo1.value)
+          + toHex(servo2.value)
+          + toHex(servo3.value)
+          + toHex(servo4.value)
+          + toHex(servo5.value)
+          + toHex(servo6.value)
+          + toHex(0)
+          + toHex(0)
+          + toHex(0)
+          + toHex(servo10.value)
+          + toHex(servo11.value)
+          + toHex(servo12.value)
+          + toHex(servo13.value)
+          + toHex(servo14.value)
+          + toHex(servo15.value);
+        sendMessage(outgoingMessage);
+      }
 
-    newSocket();
+      function nws() {
+        let ws = new WebSocket('ws://' + location.hostname + '/ws', ['arduino']);
+        ws.onmessage = function (e) {
+          isSending = false;
+          showMessage(event.data);
+          if (pendingMsg) {
+            sendPose();
+          }
+        };
+        return ws;
+      }
+
+      restBtn.onclick = function (event) {
+        sendMessage("PCA9685ALL:0:000000000000000000000000000000000000000000000000");
+      }
+      servo0.oninput = sendPose;
+      servo1.oninput = sendPose;
+      servo2.oninput = sendPose;
+      servo3.oninput = sendPose;
+      servo4.oninput = sendPose;
+      servo5.oninput = sendPose;
+      servo6.oninput = sendPose;
+      servo10.oninput = sendPose;
+      servo11.oninput = sendPose;
+      servo12.oninput = sendPose;
+      servo13.oninput = sendPose;
+      servo14.oninput = sendPose;
+      servo15.oninput = sendPose;
+
+      ws = nws();
+    }
   </script>
 
 </body>
