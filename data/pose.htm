@@ -8,6 +8,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Robot Cat Pose Design</title>
   <style>
     .tbl {
       width: 100%;
@@ -72,9 +73,7 @@
 </head>
 
 <body>
-
   <h1>Robot Cat Pose Design</h1>
-
   <table class="tbl">
     <tr>
       <td>
@@ -124,7 +123,6 @@
   <div>
     <p>Output: <span id="output"></span></p>
   </div>
-
   <div id="messages"></div>
 
   <script>
@@ -135,7 +133,7 @@
     window.onload = function () {
       let ws = undefined;
       let isSending = false;
-      let pendingMsg = false;
+      let hasPendingMsg = false;
 
       let restBtn = document.getElementById("restBtn");
       let servo0 = document.getElementById("servo0");
@@ -166,7 +164,7 @@
           isSending = true;
           ws.send(outgoingMessage);
         } else {
-          pendingMsg = true;
+          hasPendingMsg = true;
           output.innerHTML = "pending";
         }
       }
@@ -197,7 +195,8 @@
         ws.onmessage = function (e) {
           isSending = false;
           showMessage(event.data);
-          if (pendingMsg) {
+          if (hasPendingMsg) {
+            hasPendingMsg = false;
             sendPose();
           }
         };
@@ -224,7 +223,6 @@
       ws = nws();
     }
   </script>
-
 </body>
 
 </html>

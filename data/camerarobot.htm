@@ -1,16 +1,20 @@
+<!-- source: 
+  https://javascript.info/websocket
+  https://stackoverflow.com/questions/58337243/canvas-touch-event-js
+-->
 <!doctype html>
 <html>
 
 <head>
     <meta charset="utf-8">
-    <meta name='viewport' content='user-scalable=no,initial-scale=1.0,maximum-scale=1.0' />
+    <meta name="viewport" content="width=400, initial-scale=1">
     <title>Camera Robot</title>
     <style>
         body {
-            font-family: Arial, Helvetica, sans-serif;
             padding: 0 24px 0 24px;
             background-color: #181818;
             color: #EFEFEF;
+            font-family: Arial, Helvetica, sans-serif;
             font-size: 16px;
         }
 
@@ -58,13 +62,11 @@
             width: 100%;
             height: auto;
             border-radius: 4px;
-            margin: 4px auto 0 auto;
+            margin: 0 auto 0 auto;
         }
 
         figure canvas {
             display: block;
-            width: 100%;
-            height: auto;
             border-radius: 4px;
             margin: 4px auto 0 auto;
         }
@@ -342,7 +344,8 @@
 
         .image-container {
             position: relative;
-            min-width: 160px;
+            min-width: 320px;
+            min-height: 240px;
         }
 
         .hidden {
@@ -555,10 +558,16 @@
                 <div id="stream-container" class="image-container">
                     <img id="stream" src="stream">
                 </div>
-                <canvas id='touchcanvas' width='319' height='319'></canvas>
+
+                <canvas id='touchcanvas' width='255' height='255'></canvas>
+
+                <div>
+                    <p>Output: <span id="output"></span></p>
+                </div>
             </figure>
         </div>
     </section>
+
     <script>
         document.addEventListener('DOMContentLoaded', function (event) {
             var baseHost = document.location.origin;
@@ -744,102 +753,138 @@
             };
 
             // Touch Remote
-            var sentMsg = '';
-            var pendingStop = false;
-            function nw() { var ws = new WebSocket('ws://' + location.hostname + '/ws', ['arduino']); ws.onmessage = function (e) { sentMsg = ''; if (pendingStop) d(160, 160); }; return ws; }
-            var ws = nw();
-            var md = false;
-            document.ontouchmove = function (e) { e.preventDefault(); };
-            var cv = document.getElementById('touchcanvas');
-            var c = cv.getContext('2d');
-            function clr() {
+            let ws = undefined;
+            let isSending = false;
+            let hasPendingMsg = false;
+            let mouseDowned = false;
+            let la = 0, lb = 0, ra = 0, rb = 0;
+
+            let cv = document.getElementById('touchcanvas');
+            let c = cv.getContext('2d');
+            let ctop = cv.offsetTop;
+            let cleft = cv.offsetLeft;
+
+            function clearCanvas() {
                 c.fillStyle = '#fff';
-                c.rect(0, 0, 319, 319);
+                c.rect(0, 0, 255, 255);
                 c.fill();
             }
-            function m(e) {
-                console.log(e.clientX, cv.offsetLeft, e.clientY, cv.offsetTop);
-                d(e.clientX - cv.offsetLeft, e.clientY - cv.offsetTop);
-            }
-            function t(e) {
-                e.preventDefault();
-                var x, y, u = e.touches[0];
-                if (u) {
-                    d(u.clientX - cv.offsetLeft, u.clientY - cv.offsetTop);
+
+            function sendMessage(outgoingMessage) {
+                if ((!ws) || (ws.readyState === ws.CLOSED)) { ws = nws(); }
+                if (!isSending) {
+                    output.innerHTML = outgoingMessage;
+                    isSending = true;
+                    ws.send(outgoingMessage);
                 } else {
-                    d(160, 160);
+                    hasPendingMsg = true;
+                    output.innerHTML = "pending";
                 }
             }
-            function d(x, y) {
-                console.log(x, y);
-                if (ws.readyState === ws.CLOSED) { ws = nw(); }
-                if (sentMsg == '') {
-                    var la = 0, lb = 0, ra = 0, rb = 0;
-                    if (y < 112) { // forward
-                        if (x > 208) {
-                            lb = (255 - y);
-                            rb = lb - (x - 192);
-                        } else if (x < 112) {
-                            rb = (255 - y);
-                            lb = rb - (128 - x);
-                        } else {
-                            lb = (255 - y);
-                            rb = lb;
-                        }
-                    } else if (y > 208) { // backward
-                        if (x > 208) {
-                            la = y - 64;
-                            ra = la - (x - 192);
-                        } else if (x < 112) {
-                            ra = y - 64;
-                            la = ra - (128 - x);
-                        } else {
-                            la = y - 64;
-                            ra = la;
-                        }
+            function sendMotor() {
+                sendMessage('MOTOR:' + la.substr(-2) + ':' + lb.substr(-2) + ':' + ra.substr(-2) + ':' + rb.substr(-2));
+            }
+
+            function updateMotor(x, y) {
+                la = 0, lb = 0, ra = 0, rb = 0;
+                if (y < 112) { // forward
+                    if (x > 144) {
+                        lb = (255 - y);
+                        rb = lb - (x - 128);
+                    } else if (x < 112) {
+                        rb = (255 - y);
+                        lb = rb - (128 - x);
                     } else {
-                        if (x > 208) {
-                            lb = x - 64;
-                            ra = lb;
-                        } else if (x < 112) {
-                            rb = (255 - x);
-                            la = rb;
-                        }
+                        lb = (255 - y);
+                        rb = lb;
                     }
-                    la = '0' + la.toString(16);
-                    lb = '0' + lb.toString(16);
-                    ra = '0' + ra.toString(16);
-                    rb = '0' + rb.toString(16);
-                    sentMsg = 'MOTOR:' + la.substr(-2) + ':' + lb.substr(-2) + ':' + ra.substr(-2) + ':' + rb.substr(-2);
-                    ws.send(sentMsg);
-                    c.beginPath();
-                    c.fillStyle = 'rgba(96,96,208,0.5)';
-                    c.arc(x, y, 5, 0, Math.PI * 2, true);
-                    c.fill();
-                    c.closePath();
-                    pendingStop = false;
-                } else if ((x == 160) && (y == 160)) {
-                    pendingStop = true;
+                } else if (y > 144) { // backward
+                    if (x > 144) {
+                        la = y;
+                        ra = la - (x - 128);
+                    } else if (x < 112) {
+                        ra = y;
+                        la = ra - (128 - x);
+                    } else {
+                        la = y;
+                        ra = la;
+                    }
+                } else {
+                    if (x > 144) {
+                        lb = x;
+                        ra = lb;
+                    } else if (x < 112) {
+                        rb = (255 - x);
+                        la = rb;
+                    }
+                }
+                la = '0' + la.toString(16);
+                lb = '0' + lb.toString(16);
+                ra = '0' + ra.toString(16);
+                rb = '0' + rb.toString(16);
+                sendMotor();
+
+                c.beginPath();
+                c.fillStyle = 'rgba(96,96,208,0.5)';
+                c.arc(x, y, 5, 0, Math.PI * 2, true);
+                c.fill();
+                c.closePath();
+            }
+
+            function move(e) {
+                updateMotor(e.clientX - cleft, e.clientY - ctop);
+            }
+
+            function touch(e) {
+                e.preventDefault();
+                let x, y, u = e.touches[0];
+                if (u) {
+                    updateMotor(u.clientX - cleft, u.clientY - ctop);
+                } else {
+                    updateMotor(128, 128);
                 }
             }
-            cv.ontouchstart = function (e) {
-                clr();
-                t(e);
+
+            function nws() {
+                let ws = new WebSocket('ws://' + location.hostname + '/ws', ['arduino']);
+                ws.onmessage = function (e) {
+                    isSending = false;
+                    if (hasPendingMsg) {
+                        hasPendingMsg = false;
+                        sendMotor();
+                    }
+                };
+                return ws;
+            }
+
+            document.ontouchmove = function (e) {
+                e.preventDefault();
             };
-            cv.ontouchmove = t;
-            cv.ontouchend = t;
+
+            cv.ontouchstart = touch;
+            cv.ontouchmove = touch;
+            cv.ontouchend = function (e) {
+                clearCanvas();
+                touch(e);
+            };
             cv.onmousedown = function (e) {
-                md = true;
-                clr();
+                mouseDowned = true;
+                move(e);
             };
             cv.onmousemove = function (e) {
-                if (md) m(e);
+                if (mouseDowned) {
+                    move(e);
+                }
             };
             cv.onmouseup = function (e) {
-                md = false;
-                d(160, 160);
+                mouseDowned = false;
+                updateMotor(128, 128);
+                clearCanvas();
             };
-            clr();
+
+            ws = nws();
+
+            clearCanvas();
         });
     </script>
 </body>
