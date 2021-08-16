@@ -7,97 +7,63 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=400, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Camera Robot</title>
     <style>
         body {
-            padding: 0 24px 0 24px;
+            margin: 0;
+            padding: 0;
             background-color: #181818;
             color: #EFEFEF;
             font-family: Arial, Helvetica, sans-serif;
-            font-size: 16px;
+            font-size: 12px;
         }
 
         section.main {
             display: flex;
+            width: 320px;
+            margin: 0 auto 0 auto;
+            flex-direction: column;
         }
 
-        #menu,
-        section.main {
-            flex-direction: column;
+        #stream-container {
+            display: flex;
+        }
+
+        #stream {
+            display: block;
+            width: 320px;
+            height: 240px;
+            border-radius: 4px;
+            margin: 0;
+        }
+
+        #control-container {
+            display: flex;
+            flex-direction: row;
+        }
+
+        #touchcanvas {
+            display: block;
+            border-radius: 4px;
+            margin: 4px 0 0 4px;
         }
 
         #menu {
             display: none;
             flex-wrap: nowrap;
-            min-width: 340px;
+            min-width: 304px;
             background: #363636;
             padding: 8px;
             border-radius: 4px;
-            margin-top: -10px;
-            margin-right: 10px;
+            margin: -10px 0 0 0;
+            flex-direction: column;
         }
 
         #content {
             display: flex;
             flex-wrap: wrap;
             align-items: stretch;
-        }
-
-        figure {
-            padding: 0px;
-            margin: 0;
-            -webkit-margin-before: 0;
-            margin-block-start: 0;
-            -webkit-margin-after: 0;
-            margin-block-end: 0;
-            -webkit-margin-start: 0;
-            margin-inline-start: 0;
-            -webkit-margin-end: 0;
-            margin-inline-end: 0;
-        }
-
-        figure img {
-            display: block;
-            width: 100%;
-            height: auto;
-            border-radius: 4px;
-            margin: 0 auto 0 auto;
-        }
-
-        figure canvas {
-            display: block;
-            border-radius: 4px;
-            margin: 4px auto 0 auto;
-        }
-
-        @media (min-width: 800px) and (orientation:landscape) {
-            #content {
-                display: flex;
-                flex-wrap: nowrap;
-                align-items: stretch;
-            }
-
-            figure img {
-                display: block;
-                max-width: 100%;
-                max-height: calc(100vh - 40px);
-                width: auto;
-                height: auto;
-            }
-
-            figure {
-                padding: 0 0 0 0px;
-                margin: 0;
-                -webkit-margin-before: 0;
-                margin-block-start: 0;
-                -webkit-margin-after: 0;
-                margin-block-end: 0;
-                -webkit-margin-start: 0;
-                margin-inline-start: 0;
-                -webkit-margin-end: 0;
-                margin-inline-end: 0;
-            }
         }
 
         section#buttons {
@@ -122,21 +88,35 @@
             display: flex;
         }
 
-        .header-group {
+        .btn-group {
             display: flex;
-            flex-wrap: nowrap;
+            flex-direction: column;
+            width: 65px;
+            height: auto;
         }
 
-        .header-group>label {
+        .control-box {
+            background: #363636;
+            padding: 4px;
+            border-radius: 4px;
+            width: auto;
+            height: auto;
+            margin: 4px 0 0 0;
+            font-size: 14px;
+        }
+
+        .control-splitter {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        label {
             display: inline-block;
         }
 
-        .header-group h2 {
-            font-size: 16px;
-            margin: 0;
-        }
-
-        .header-group input {
+        input {
             flex-grow: 1;
         }
 
@@ -150,7 +130,7 @@
         .input-group>label {
             display: inline-block;
             padding-right: 10px;
-            min-width: 47%;
+            min-width: 40%;
         }
 
         .input-group input,
@@ -174,7 +154,7 @@
             color: #fff;
             background: #ff3034;
             border-radius: 5px;
-            font-size: 16px;
+            font-size: 12px;
             outline: 0;
         }
 
@@ -289,8 +269,9 @@
             display: block;
             position: relative;
             line-height: 22px;
-            font-size: 16px;
+            font-size: 12px;
             height: 22px;
+            margin-left: -10px;
         }
 
         .switch input {
@@ -336,13 +317,13 @@
 
         select {
             border: 1px solid #363636;
-            font-size: 14px;
+            font-size: 12px;
             height: 22px;
             outline: 0;
             border-radius: 5px;
         }
 
-        .image-container {
+        #image-container {
             position: relative;
             min-width: 320px;
             min-height: 240px;
@@ -356,13 +337,27 @@
 
 <body>
     <section class="main">
-        <div class="header-group">
-            <label for="nav-toggle-cb" id="nav-toggle">&#9776;&nbsp;Camera Robot</label>
-            <div class="switch">
-                <input id="led" type="checkbox" class="led-action">
-                <label class="slider" for="led"></label>
+        <div id="stream-container">
+            <img id="stream" src="stream">
+        </div>
+        <div id="control-container">
+            <div class="btn-group">
+                <div class="control-box">
+                    <label for="led">LED</label>
+                    <div class="switch">
+                        <input id="led" type="checkbox" class="led-action">
+                        <label class="slider" for="led"></label>
+                    </div>
+                </div>
+
+                <div class="control-splitter">
+                </div>
+
+                <div class="control-box">
+                    <label for="nav-toggle-cb" id="nav-toggle">Camera<br>Menu&nbsp;&#9776;</label>
+                </div>
             </div>
-            <label for="led">&#9728;</label>
+            <canvas id='touchcanvas' width='255' height='255'></canvas>
         </div>
         <div id="content">
             <div id="sidebar">
@@ -554,17 +549,10 @@
                     </section>
                 </nav>
             </div>
-            <figure>
-                <div id="stream-container" class="image-container">
-                    <img id="stream" src="stream">
-                </div>
+        </div>
 
-                <canvas id='touchcanvas' width='255' height='255'></canvas>
-
-                <div>
-                    <p>Output: <span id="output"></span></p>
-                </div>
-            </figure>
+        <div>
+            <p>Output: <span id="output"></span></p>
         </div>
     </section>
 
@@ -760,14 +748,21 @@
             let la = 0, lb = 0, ra = 0, rb = 0;
 
             let cv = document.getElementById('touchcanvas');
-            let c = cv.getContext('2d');
+            let ctx = cv.getContext('2d');
             let ctop = cv.offsetTop;
             let cleft = cv.offsetLeft;
 
+            var img = new Image();
+            img.onload = function () {
+                clearCanvas();
+            }
+            img.src = "arrows.svg";
+
             function clearCanvas() {
-                c.fillStyle = '#fff';
-                c.rect(0, 0, 255, 255);
-                c.fill();
+                ctx.fillStyle = '#fff';
+                ctx.rect(0, 0, 255, 255);
+                ctx.fill();
+                ctx.drawImage(img, 0, 0);
             }
 
             function sendMessage(outgoingMessage) {
@@ -824,11 +819,11 @@
                 rb = '0' + rb.toString(16);
                 sendMotor();
 
-                c.beginPath();
-                c.fillStyle = 'rgba(96,96,208,0.5)';
-                c.arc(x, y, 5, 0, Math.PI * 2, true);
-                c.fill();
-                c.closePath();
+                ctx.beginPath();
+                ctx.fillStyle = 'rgba(96,96,208,0.5)';
+                ctx.arc(x, y, 5, 0, Math.PI * 2, true);
+                ctx.fill();
+                ctx.closePath();
             }
 
             function move(e) {

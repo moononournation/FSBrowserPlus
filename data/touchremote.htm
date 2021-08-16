@@ -39,14 +39,21 @@
             let la = 0, lb = 0, ra = 0, rb = 0;
 
             let cv = document.getElementById('touchcanvas');
-            let c = cv.getContext('2d');
+            let ctx = cv.getContext('2d');
             let ctop = cv.offsetTop;
             let cleft = cv.offsetLeft;
 
+            var img = new Image();
+            img.onload = function () {
+              clearCanvas();
+            }
+            img.src = "arrows.svg";
+
             function clearCanvas() {
-                c.fillStyle = '#fff';
-                c.rect(0, 0, 255, 255);
-                c.fill();
+                ctx.fillStyle = '#fff';
+                ctx.rect(0, 0, 255, 255);
+                ctx.fill();
+                ctx.drawImage(img, 0, 0);
             }
 
             function showMessage(message) {
@@ -109,11 +116,11 @@
                 rb = '0' + rb.toString(16);
                 sendMotor();
 
-                c.beginPath();
-                c.fillStyle = 'rgba(96,96,208,0.5)';
-                c.arc(x, y, 5, 0, Math.PI * 2, true);
-                c.fill();
-                c.closePath();
+                ctx.beginPath();
+                ctx.fillStyle = 'rgba(96,96,208,0.5)';
+                ctx.arc(x, y, 5, 0, Math.PI * 2, true);
+                ctx.fill();
+                ctx.closePath();
             }
 
             function move(e) {
