@@ -35,7 +35,7 @@
             width: 320px;
             height: 240px;
             border-radius: 4px;
-            margin: 0;
+            margin: 4px 0 0 0;
         }
 
         #control-container {
@@ -820,8 +820,8 @@
                 sendMotor();
 
                 ctx.beginPath();
-                ctx.fillStyle = 'rgba(96,96,208,0.5)';
-                ctx.arc(x, y, 5, 0, Math.PI * 2, true);
+                ctx.fillStyle = 'rgba(255,48,52,0.8)';
+                ctx.arc(x, y, 15, 0, Math.PI * 2, true);
                 ctx.fill();
                 ctx.closePath();
             }
