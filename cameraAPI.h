@@ -40,13 +40,13 @@ static void cameraLazyInit()
         {
             config.frame_size = FRAMESIZE_UXGA;
             config.jpeg_quality = 4;
-            config.fb_count = 2; // disable continuous mode
+            config.fb_count = 2;
         }
         else
         {
             config.frame_size = FRAMESIZE_QVGA;
             config.jpeg_quality = 10;
-            config.fb_count = 2; // disable continuous mode
+            config.fb_count = 1; // disable continuous mode
         }
 
 #if defined(CAMERA_MODEL_ESP_EYE)
