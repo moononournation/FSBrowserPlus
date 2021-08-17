@@ -179,10 +179,10 @@
 // #define SD_SDA3 13
 
 #define MOTOR
-#define MotorR_A_Pin 2
-#define MotorR_B_Pin 14
 #define MotorL_A_Pin 13
 #define MotorL_B_Pin 12
+#define MotorR_A_Pin 2
+#define MotorR_B_Pin 14
 
 #define I2C_SDA_NUM SIOD_GPIO_NUM
 #define I2C_SCL_NUM SIOC_GPIO_NUM
