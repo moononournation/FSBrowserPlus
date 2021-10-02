@@ -35,7 +35,8 @@
 // #define CAMERA_MODEL_ESP32_CAM_ROBOT // Has PSRAM
 // #define CAMERA_MODEL_M5STACK_ESP32CAM // No PSRAM
 // #define CAMERA_MODEL_TTGO_T_JOURNAL // No PSRAM
-// #define CAMERA_MODEL_JSZWY_CYIS
+// #define CAMERA_MODEL_JSZWY_CYIS // No PSRAM
+// #define CAMERA_MODEL_JSZWY_CYIS_2 // No PSRAM
 #include "cameraAPI.h"
 
 // custom motor pins
@@ -48,7 +49,11 @@
 const char *ssid = "YourAP";
 const char *password = "PleaseInputYourPasswordHere";
 const char *hostname = "fsbrowserplus";
-const char *apPassword = "PleaseInputYourPasswordHere";
+const char *apName = "FS Browser Plus";
+// const char *hostname = "striderwalkerv2";
+// const char *apName = "Strider Walker V2";
+//const char *apPassword = "PleaseInputYourPasswordHere";
+const char *apPassword = ""; // Open WiFi
 const char *httpEditUserName = "admin";
 const char *httpEditPassword = "PleaseInputYourPasswordHere";
 const uint8_t analogPin = 32;
@@ -349,7 +354,7 @@ void setup()
   }
 
   WiFi.mode(WIFI_AP_STA);
-  WiFi.softAP(hostname, apPassword);
+  WiFi.softAP(apName, apPassword);
   dnsServer.start(53, "*", WiFi.softAPIP());
   server.addHandler(new CaptiveRequestHandler()).setFilter(ON_AP_FILTER); //only when requested from AP
 
