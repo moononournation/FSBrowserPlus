@@ -50,6 +50,8 @@ const char *ssid = "YourAP";
 const char *password = "PleaseInputYourPasswordHere";
 const char *hostname = "fsbrowserplus";
 const char *apName = "FS Browser Plus";
+// const char *hostname = "striderwalker";
+// const char *apName = "Strider Walker";
 // const char *hostname = "striderwalkerv2";
 // const char *apName = "Strider Walker V2";
 //const char *apPassword = "PleaseInputYourPasswordHere";
@@ -58,7 +60,7 @@ const char *httpEditUserName = "admin";
 const char *httpEditPassword = "PleaseInputYourPasswordHere";
 const uint8_t analogPin = 32;
 #ifdef CAMERA
-const uint8_t digitalInputList[] = { 0 };
+const uint8_t digitalInputList[] = {0};
 #else
 const uint8_t digitalInputList[] = {0, 2, 5, 27};
 #endif
@@ -373,25 +375,29 @@ void setup()
   }
 
   //Send OTA events to the browser
-  ArduinoOTA.onStart([]() { events.send("Update Start", "ota"); });
-  ArduinoOTA.onEnd([]() { events.send("Update End", "ota"); });
-  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
-    char p[32];
-    sprintf(p, "Progress: %u%%\n", (progress / (total / 100)));
-    events.send(p, "ota");
-  });
-  ArduinoOTA.onError([](ota_error_t error) {
-    if (error == OTA_AUTH_ERROR)
-      events.send("Auth Failed", "ota");
-    else if (error == OTA_BEGIN_ERROR)
-      events.send("Begin Failed", "ota");
-    else if (error == OTA_CONNECT_ERROR)
-      events.send("Connect Failed", "ota");
-    else if (error == OTA_RECEIVE_ERROR)
-      events.send("Recieve Failed", "ota");
-    else if (error == OTA_END_ERROR)
-      events.send("End Failed", "ota");
-  });
+  ArduinoOTA.onStart([]()
+                     { events.send("Update Start", "ota"); });
+  ArduinoOTA.onEnd([]()
+                   { events.send("Update End", "ota"); });
+  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total)
+                        {
+                          char p[32];
+                          sprintf(p, "Progress: %u%%\n", (progress / (total / 100)));
+                          events.send(p, "ota");
+                        });
+  ArduinoOTA.onError([](ota_error_t error)
+                     {
+                       if (error == OTA_AUTH_ERROR)
+                         events.send("Auth Failed", "ota");
+                       else if (error == OTA_BEGIN_ERROR)
+                         events.send("Begin Failed", "ota");
+                       else if (error == OTA_CONNECT_ERROR)
+                         events.send("Connect Failed", "ota");
+                       else if (error == OTA_RECEIVE_ERROR)
+                         events.send("Recieve Failed", "ota");
+                       else if (error == OTA_END_ERROR)
+                         events.send("End Failed", "ota");
+                     });
   ArduinoOTA.setHostname(hostname);
   ArduinoOTA.begin();
 
@@ -407,9 +413,8 @@ void setup()
   ws.onEvent(onWsEvent);
   server.addHandler(&ws);
 
-  events.onConnect([](AsyncEventSourceClient *client) {
-    client->send("hello!", NULL, millis(), 1000);
-  });
+  events.onConnect([](AsyncEventSourceClient *client)
+                   { client->send("hello!", NULL, millis(), 1000); });
   server.addHandler(&events);
 
 #ifdef ESP32
@@ -419,9 +424,8 @@ void setup()
   server.addHandler(new SPIFFSEditor(httpEditUserName, httpEditPassword));
 #endif
 
-  server.on("/heap", HTTP_GET, [](AsyncWebServerRequest *request) {
-    request->send(200, "text/plain", String(ESP.getFreeHeap()));
-  });
+  server.on("/heap", HTTP_GET, [](AsyncWebServerRequest *request)
+            { request->send(200, "text/plain", String(ESP.getFreeHeap())); });
 
 #ifdef ESP32
   // server.serveStatic("/", SPIFFS, "/").setDefaultFile("index.htm");
@@ -430,74 +434,77 @@ void setup()
   server.serveStatic("/", SPIFFS, "/").setDefaultFile("index.htm");
 #endif
 
-  server.onNotFound([](AsyncWebServerRequest *request) {
-    Serial.printf("NOT_FOUND: ");
-    if (request->method() == HTTP_GET)
-      Serial.printf("GET");
-    else if (request->method() == HTTP_POST)
-      Serial.printf("POST");
-    else if (request->method() == HTTP_DELETE)
-      Serial.printf("DELETE");
-    else if (request->method() == HTTP_PUT)
-      Serial.printf("PUT");
-    else if (request->method() == HTTP_PATCH)
-      Serial.printf("PATCH");
-    else if (request->method() == HTTP_HEAD)
-      Serial.printf("HEAD");
-    else if (request->method() == HTTP_OPTIONS)
-      Serial.printf("OPTIONS");
-    else
-      Serial.printf("UNKNOWN");
-    Serial.printf(" http://%s%s\n", request->host().c_str(), request->url().c_str());
+  server.onNotFound([](AsyncWebServerRequest *request)
+                    {
+                      Serial.printf("NOT_FOUND: ");
+                      if (request->method() == HTTP_GET)
+                        Serial.printf("GET");
+                      else if (request->method() == HTTP_POST)
+                        Serial.printf("POST");
+                      else if (request->method() == HTTP_DELETE)
+                        Serial.printf("DELETE");
+                      else if (request->method() == HTTP_PUT)
+                        Serial.printf("PUT");
+                      else if (request->method() == HTTP_PATCH)
+                        Serial.printf("PATCH");
+                      else if (request->method() == HTTP_HEAD)
+                        Serial.printf("HEAD");
+                      else if (request->method() == HTTP_OPTIONS)
+                        Serial.printf("OPTIONS");
+                      else
+                        Serial.printf("UNKNOWN");
+                      Serial.printf(" http://%s%s\n", request->host().c_str(), request->url().c_str());
 
-    if (request->contentLength())
-    {
-      Serial.printf("_CONTENT_TYPE: %s\n", request->contentType().c_str());
-      Serial.printf("_CONTENT_LENGTH: %u\n", request->contentLength());
-    }
+                      if (request->contentLength())
+                      {
+                        Serial.printf("_CONTENT_TYPE: %s\n", request->contentType().c_str());
+                        Serial.printf("_CONTENT_LENGTH: %u\n", request->contentLength());
+                      }
 
-    int headers = request->headers();
-    int i;
-    for (i = 0; i < headers; i++)
-    {
-      AsyncWebHeader *h = request->getHeader(i);
-      Serial.printf("_HEADER[%s]: %s\n", h->name().c_str(), h->value().c_str());
-    }
+                      int headers = request->headers();
+                      int i;
+                      for (i = 0; i < headers; i++)
+                      {
+                        AsyncWebHeader *h = request->getHeader(i);
+                        Serial.printf("_HEADER[%s]: %s\n", h->name().c_str(), h->value().c_str());
+                      }
 
-    int params = request->params();
-    for (i = 0; i < params; i++)
-    {
-      AsyncWebParameter *p = request->getParam(i);
-      if (p->isFile())
-      {
-        Serial.printf("_FILE[%s]: %s, size: %u\n", p->name().c_str(), p->value().c_str(), p->size());
-      }
-      else if (p->isPost())
-      {
-        Serial.printf("_POST[%s]: %s\n", p->name().c_str(), p->value().c_str());
-      }
-      else
-      {
-        Serial.printf("_GET[%s]: %s\n", p->name().c_str(), p->value().c_str());
-      }
-    }
+                      int params = request->params();
+                      for (i = 0; i < params; i++)
+                      {
+                        AsyncWebParameter *p = request->getParam(i);
+                        if (p->isFile())
+                        {
+                          Serial.printf("_FILE[%s]: %s, size: %u\n", p->name().c_str(), p->value().c_str(), p->size());
+                        }
+                        else if (p->isPost())
+                        {
+                          Serial.printf("_POST[%s]: %s\n", p->name().c_str(), p->value().c_str());
+                        }
+                        else
+                        {
+                          Serial.printf("_GET[%s]: %s\n", p->name().c_str(), p->value().c_str());
+                        }
+                      }
 
-    request->send(404);
-  });
-  server.onFileUpload([](AsyncWebServerRequest *request, const String &filename, size_t index, uint8_t *data, size_t len, bool final) {
-    if (!index)
-      Serial.printf("UploadStart: %s\n", filename.c_str());
-    Serial.printf("%s", (const char *)data);
-    if (final)
-      Serial.printf("UploadEnd: %s (%u)\n", filename.c_str(), index + len);
-  });
-  server.onRequestBody([](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
-    if (!index)
-      Serial.printf("BodyStart: %u\n", total);
-    Serial.printf("%s", (const char *)data);
-    if (index + len == total)
-      Serial.printf("BodyEnd: %u\n", total);
-  });
+                      request->send(404);
+                    });
+  server.onFileUpload([](AsyncWebServerRequest *request, const String &filename, size_t index, uint8_t *data, size_t len, bool final)
+                      {
+                        if (!index)
+                          Serial.printf("UploadStart: %s\n", filename.c_str());
+                        Serial.printf("%s", (const char *)data);
+                        if (final)
+                          Serial.printf("UploadEnd: %s (%u)\n", filename.c_str(), index + len);
+                      });
+  server.onRequestBody([](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total)
+                       {
+                         if (!index)
+                           Serial.printf("BodyStart: %u\n", total);
+                         Serial.printf("%s", (const char *)data);
+                         if (index + len == total)
+                           Serial.printf("BodyEnd: %u\n", total);
+                       });
 
 #ifdef CAMERA
   server.on("/status", HTTP_GET, handleStatus);
@@ -508,10 +515,11 @@ void setup()
 #endif
 
   //get heap status, analog input value and all GPIO statuses in one json call
-  server.on("/all", HTTP_GET, [](AsyncWebServerRequest *request) {
-    String json = handleReadGPIO();
-    request->send(200, "text/json", json);
-  });
+  server.on("/all", HTTP_GET, [](AsyncWebServerRequest *request)
+            {
+              String json = handleReadGPIO();
+              request->send(200, "text/json", json);
+            });
 
   // set GPIO value
   // e.g. http://fsbrowserplus.local/gpio?pin=4&val=1
