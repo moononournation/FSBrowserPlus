@@ -1,69 +1,96 @@
-<!-- source: 
-  https://javascript.info/websocket
-  https://stackoverflow.com/questions/58337243/canvas-touch-event-js
--->
 <!doctype html>
 <html>
 
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Camera Robot</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>ESP32 OV3660</title>
     <style>
         body {
-            margin: 0;
-            padding: 0;
-            background-color: #181818;
-            color: #EFEFEF;
             font-family: Arial, Helvetica, sans-serif;
-            font-size: 12px;
+            background: #181818;
+            color: #EFEFEF;
+            font-size: 16px;
+        }
+
+        h2 {
+            font-size: 18px;
         }
 
         section.main {
             display: flex;
-            width: 320px;
-            margin: 0 auto 0 auto;
+        }
+
+        #menu,
+        section.main {
             flex-direction: column;
-        }
-
-        #stream-container {
-            display: flex;
-        }
-
-        #stream {
-            display: block;
-            width: 320px;
-            height: 240px;
-            border-radius: 4px;
-            margin: 4px 0 0 0;
-        }
-
-        #control-container {
-            display: flex;
-            flex-direction: row;
-        }
-
-        #touchcanvas {
-            display: block;
-            border-radius: 4px;
-            margin: 4px 0 0 4px;
         }
 
         #menu {
             display: none;
             flex-wrap: nowrap;
-            min-width: 304px;
+            min-width: 340px;
             background: #363636;
             padding: 8px;
             border-radius: 4px;
-            margin: -10px 0 0 0;
-            flex-direction: column;
+            margin-top: -10px;
+            margin-right: 10px;
         }
 
         #content {
             display: flex;
             flex-wrap: wrap;
             align-items: stretch;
+        }
+
+        figure {
+            padding: 0px;
+            margin: 0;
+            -webkit-margin-before: 0;
+            margin-block-start: 0;
+            -webkit-margin-after: 0;
+            margin-block-end: 0;
+            -webkit-margin-start: 0;
+            margin-inline-start: 0;
+            -webkit-margin-end: 0;
+            margin-inline-end: 0;
+        }
+
+        figure img {
+            display: block;
+            width: 100%;
+            height: auto;
+            border-radius: 4px;
+            margin-top: 8px;
+        }
+
+        @media (min-width: 800px) and (orientation:landscape) {
+            #content {
+                display: flex;
+                flex-wrap: nowrap;
+                align-items: stretch;
+            }
+
+            figure img {
+                display: block;
+                max-width: 100%;
+                max-height: calc(100vh - 40px);
+                width: auto;
+                height: auto;
+            }
+
+            figure {
+                padding: 0 0 0 0px;
+                margin: 0;
+                -webkit-margin-before: 0;
+                margin-block-start: 0;
+                -webkit-margin-after: 0;
+                margin-block-end: 0;
+                -webkit-margin-start: 0;
+                margin-inline-start: 0;
+                -webkit-margin-end: 0;
+                margin-inline-end: 0;
+            }
         }
 
         section#buttons {
@@ -88,38 +115,6 @@
             display: flex;
         }
 
-        .btn-group {
-            display: flex;
-            flex-direction: column;
-            width: 65px;
-            height: auto;
-        }
-
-        .control-box {
-            background: #363636;
-            padding: 4px;
-            border-radius: 4px;
-            width: auto;
-            height: auto;
-            margin: 4px 0 0 0;
-            font-size: 14px;
-        }
-
-        .control-splitter {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        label {
-            display: inline-block;
-        }
-
-        input {
-            flex-grow: 1;
-        }
-
         .input-group {
             display: flex;
             flex-wrap: nowrap;
@@ -130,7 +125,7 @@
         .input-group>label {
             display: inline-block;
             padding-right: 10px;
-            min-width: 40%;
+            min-width: 47%;
         }
 
         .input-group input,
@@ -154,7 +149,7 @@
             color: #fff;
             background: #ff3034;
             border-radius: 5px;
-            font-size: 12px;
+            font-size: 16px;
             outline: 0;
         }
 
@@ -269,9 +264,8 @@
             display: block;
             position: relative;
             line-height: 22px;
-            font-size: 12px;
+            font-size: 16px;
             height: 22px;
-            margin-left: -10px;
         }
 
         .switch input {
@@ -317,16 +311,29 @@
 
         select {
             border: 1px solid #363636;
-            font-size: 12px;
+            font-size: 14px;
             height: 22px;
             outline: 0;
             border-radius: 5px;
         }
 
-        #image-container {
+        .image-container {
             position: relative;
-            min-width: 320px;
-            min-height: 240px;
+            min-width: 160px;
+        }
+
+        .close {
+            position: absolute;
+            right: 5px;
+            top: 5px;
+            background: #ff3034;
+            width: 16px;
+            height: 16px;
+            border-radius: 100px;
+            color: #fff;
+            text-align: center;
+            line-height: 18px;
+            cursor: pointer;
         }
 
         .hidden {
@@ -337,35 +344,17 @@
 
 <body>
     <section class="main">
-        <div id="stream-container">
-            <img id="stream" src="">
-        </div>
-        <div id="control-container">
-            <div class="btn-group">
-                <div class="control-box">
-                    <label for="led">LED</label>
-                    <div class="switch">
-                        <input id="led" type="checkbox" class="led-action">
-                        <label class="slider" for="led"></label>
-                    </div>
-                </div>
-
-                <div class="control-splitter">
-                </div>
-
-                <div class="control-box">
-                    <label for="nav-toggle-cb" id="nav-toggle">Camera<br>Menu&nbsp;&#9776;</label>
-                </div>
-            </div>
-            <canvas id='touchcanvas' width='255' height='255'></canvas>
+        <div id="logo">
+            <label for="nav-toggle-cb" id="nav-toggle">&#9776;&nbsp;&nbsp;Toggle Camera settings</label>
         </div>
         <div id="content">
             <div id="sidebar">
-                <input type="checkbox" id="nav-toggle-cb">
+                <input type="checkbox" id="nav-toggle-cb" checked="checked">
                 <nav id="menu">
                     <div class="input-group" id="framesize-group">
                         <label for="framesize">Resolution</label>
                         <select id="framesize" class="default-action">
+                            <option value="14">QXGA(2048x1564)</option>
                             <option value="13">UXGA(1600x1200)</option>
                             <option value="12">SXGA(1280x1024)</option>
                             <option value="11">HD(1280x720)</option>
@@ -384,27 +373,51 @@
                     </div>
                     <div class="input-group" id="quality-group">
                         <label for="quality">Quality</label>
-                        <div class="range-min">10</div>
-                        <input type="range" id="quality" min="10" max="63" value="10" class="default-action">
+                        <div class="range-min">4</div>
+                        <input type="range" id="quality" min="4" max="63" value="10" class="default-action">
                         <div class="range-max">63</div>
                     </div>
                     <div class="input-group" id="brightness-group">
                         <label for="brightness">Brightness</label>
-                        <div class="range-min">-2</div>
-                        <input type="range" id="brightness" min="-2" max="2" value="0" class="default-action">
-                        <div class="range-max">2</div>
+                        <div class="range-min">-3</div>
+                        <input type="range" id="brightness" min="-3" max="3" value="0" class="default-action">
+                        <div class="range-max">3</div>
                     </div>
                     <div class="input-group" id="contrast-group">
                         <label for="contrast">Contrast</label>
-                        <div class="range-min">-2</div>
-                        <input type="range" id="contrast" min="-2" max="2" value="0" class="default-action">
-                        <div class="range-max">2</div>
+                        <div class="range-min">-3</div>
+                        <input type="range" id="contrast" min="-3" max="3" value="0" class="default-action">
+                        <div class="range-max">3</div>
                     </div>
                     <div class="input-group" id="saturation-group">
                         <label for="saturation">Saturation</label>
-                        <div class="range-min">-2</div>
-                        <input type="range" id="saturation" min="-2" max="2" value="0" class="default-action">
-                        <div class="range-max">2</div>
+                        <div class="range-min">-4</div>
+                        <input type="range" id="saturation" min="-4" max="4" value="0" class="default-action">
+                        <div class="range-max">4</div>
+                    </div>
+                    <div class="input-group" id="sharpness-group">
+                        <label for="sharpness">Sharpness</label>
+                        <div class="range-min">-3</div>
+                        <input type="range" id="sharpness" min="-3" max="3" value="0" class="default-action">
+                        <div class="range-max">3</div>
+                    </div>
+                    <div class="input-group" id="denoise-group">
+                        <label for="denoise">De-Noise</label>
+                        <div class="range-min">Auto</div>
+                        <input type="range" id="denoise" min="0" max="8" value="0" class="default-action">
+                        <div class="range-max">8</div>
+                    </div>
+                    <div class="input-group" id="ae_level-group">
+                        <label for="ae_level">Exposure Level</label>
+                        <div class="range-min">-5</div>
+                        <input type="range" id="ae_level" min="-5" max="5" value="0" class="default-action">
+                        <div class="range-max">5</div>
+                    </div>
+                    <div class="input-group" id="gainceiling-group">
+                        <label for="gainceiling">Gainceiling</label>
+                        <div class="range-min">0</div>
+                        <input type="range" id="gainceiling" min="0" max="511" value="0" class="default-action">
+                        <div class="range-max">511</div>
                     </div>
                     <div class="input-group" id="special_effect-group">
                         <label for="special_effect">Special Effect</label>
@@ -425,6 +438,13 @@
                             <label class="slider" for="awb"></label>
                         </div>
                     </div>
+                    <div class="input-group" id="dcw-group">
+                        <label for="dcw">Advanced AWB</label>
+                        <div class="switch">
+                            <input id="dcw" type="checkbox" class="default-action" checked="checked">
+                            <label class="slider" for="dcw"></label>
+                        </div>
+                    </div>
                     <div class="input-group" id="awb_gain-group">
                         <label for="awb_gain">AWB Gain</label>
                         <div class="switch">
@@ -443,30 +463,24 @@
                         </select>
                     </div>
                     <div class="input-group" id="aec-group">
-                        <label for="aec">AEC SENSOR</label>
+                        <label for="aec">AEC Enable</label>
                         <div class="switch">
                             <input id="aec" type="checkbox" class="default-action" checked="checked">
                             <label class="slider" for="aec"></label>
                         </div>
                     </div>
+                    <div class="input-group" id="aec_value-group">
+                        <label for="aec_value">Manual Exposure</label>
+                        <div class="range-min">0</div>
+                        <input type="range" id="aec_value" min="0" max="1536" value="320" class="default-action">
+                        <div class="range-max">1536</div>
+                    </div>
                     <div class="input-group" id="aec2-group">
-                        <label for="aec2">AEC DSP</label>
+                        <label for="aec2">Night Mode</label>
                         <div class="switch">
                             <input id="aec2" type="checkbox" class="default-action" checked="checked">
                             <label class="slider" for="aec2"></label>
                         </div>
-                    </div>
-                    <div class="input-group" id="ae_level-group">
-                        <label for="ae_level">AE Level</label>
-                        <div class="range-min">-2</div>
-                        <input type="range" id="ae_level" min="-2" max="2" value="0" class="default-action">
-                        <div class="range-max">2</div>
-                    </div>
-                    <div class="input-group" id="aec_value-group">
-                        <label for="aec_value">Exposure</label>
-                        <div class="range-min">0</div>
-                        <input type="range" id="aec_value" min="0" max="1200" value="204" class="default-action">
-                        <div class="range-max">1200</div>
                     </div>
                     <div class="input-group" id="agc-group">
                         <label for="agc">AGC</label>
@@ -478,28 +492,8 @@
                     <div class="input-group hidden" id="agc_gain-group">
                         <label for="agc_gain">Gain</label>
                         <div class="range-min">1x</div>
-                        <input type="range" id="agc_gain" min="0" max="30" value="5" class="default-action">
-                        <div class="range-max">31x</div>
-                    </div>
-                    <div class="input-group" id="gainceiling-group">
-                        <label for="gainceiling">Gain Ceiling</label>
-                        <div class="range-min">2x</div>
-                        <input type="range" id="gainceiling" min="0" max="6" value="0" class="default-action">
-                        <div class="range-max">128x</div>
-                    </div>
-                    <div class="input-group" id="bpc-group">
-                        <label for="bpc">BPC</label>
-                        <div class="switch">
-                            <input id="bpc" type="checkbox" class="default-action">
-                            <label class="slider" for="bpc"></label>
-                        </div>
-                    </div>
-                    <div class="input-group" id="wpc-group">
-                        <label for="wpc">WPC</label>
-                        <div class="switch">
-                            <input id="wpc" type="checkbox" class="default-action" checked="checked">
-                            <label class="slider" for="wpc"></label>
-                        </div>
+                        <input type="range" id="agc_gain" min="0" max="64" value="5" class="default-action">
+                        <div class="range-max">64x</div>
                     </div>
                     <div class="input-group" id="raw_gma-group">
                         <label for="raw_gma">Raw GMA</label>
@@ -529,11 +523,18 @@
                             <label class="slider" for="vflip"></label>
                         </div>
                     </div>
-                    <div class="input-group" id="dcw-group">
-                        <label for="dcw">DCW (Downsize EN)</label>
+                    <div class="input-group" id="bpc-group">
+                        <label for="bpc">BPC</label>
                         <div class="switch">
-                            <input id="dcw" type="checkbox" class="default-action" checked="checked">
-                            <label class="slider" for="dcw"></label>
+                            <input id="bpc" type="checkbox" class="default-action">
+                            <label class="slider" for="bpc"></label>
+                        </div>
+                    </div>
+                    <div class="input-group" id="wpc-group">
+                        <label for="wpc">WPC</label>
+                        <div class="switch">
+                            <input id="wpc" type="checkbox" class="default-action" checked="checked">
+                            <label class="slider" for="wpc"></label>
                         </div>
                     </div>
                     <div class="input-group" id="colorbar-group">
@@ -549,10 +550,12 @@
                     </section>
                 </nav>
             </div>
-        </div>
-
-        <div>
-            <p>Output: <span id="output"></span></p>
+            <figure>
+                <div id="stream-container" class="image-container hidden">
+                    <div class="close" id="close-stream">×</div>
+                    <img id="stream" src="">
+                </div>
+            </figure>
         </div>
     </section>
 
@@ -596,10 +599,8 @@
                         value ? hide(exposure) : show(exposure);
                     } else if (el.id === "agc") {
                         if (value) {
-                            show(gainCeiling);
                             hide(agcGain);
                         } else {
-                            hide(gainCeiling);
                             show(agcGain);
                         }
                     } else if (el.id === "awb_gain") {
@@ -607,15 +608,6 @@
                     }
                 }
             };
-
-            function updateLed(el) {
-                let value = el.checked ? 1 : 0;
-                const query = `${baseHost}/gpio?pin=4&val=${value}`;
-                fetch(query)
-                    .then(response => {
-                        console.log(`request to ${query} finished, status: ${response.status}`);
-                    });
-            }
 
             function updateConfig(el) {
                 let value;
@@ -643,6 +635,14 @@
                     });
             }
 
+            document
+                .querySelectorAll('.close')
+                .forEach(el => {
+                    el.onclick = () => {
+                        hide(el.parentNode);
+                    }
+                });
+
             // read initial values
             fetch(`${baseHost}/status`)
                 .then(function (response) {
@@ -660,6 +660,7 @@
             const viewContainer = document.getElementById('stream-container');
             const stillButton = document.getElementById('get-still');
             const streamButton = document.getElementById('toggle-stream');
+            const closeButton = document.getElementById('close-stream');
 
             const stopStream = () => {
                 window.stop();
@@ -679,6 +680,11 @@
                 show(viewContainer);
             };
 
+            closeButton.onclick = () => {
+                stopStream();
+                hide(viewContainer);
+            };
+
             streamButton.onclick = () => {
                 const streamEnabled = streamButton.innerHTML === 'Stop Stream';
                 if (streamEnabled) {
@@ -687,12 +693,6 @@
                     startStream();
                 }
             };
-
-            document
-                .querySelectorAll('.led-action')
-                .forEach(el => {
-                    el.onchange = () => updateLed(el);
-                });
 
             // Attach default on change action
             document
@@ -705,14 +705,11 @@
             // Gain
             const agc = document.getElementById('agc');
             const agcGain = document.getElementById('agc_gain-group');
-            const gainCeiling = document.getElementById('gainceiling-group');
             agc.onchange = () => {
                 updateConfig(agc);
                 if (agc.checked) {
-                    show(gainCeiling);
                     hide(agcGain);
                 } else {
-                    hide(gainCeiling);
                     show(agcGain);
                 }
             };
@@ -740,149 +737,9 @@
                 updateConfig(framesize);
             };
 
-            // Touch Remote
-            let ws = undefined;
-            let isSending = false;
-            let hasPendingMsg = false;
-            let mouseDowned = false;
-            let la = 0, lb = 0, ra = 0, rb = 0;
-
-            let cv = document.getElementById('touchcanvas');
-            let ctx = cv.getContext('2d');
-            let ctop = cv.offsetTop;
-            let cleft = cv.offsetLeft;
-
-            var img = new Image();
-            img.onload = function () {
-                clearCanvas();
-            }
-            img.src = "arrows.svg";
-
-            function clearCanvas() {
-                ctx.fillStyle = '#fff';
-                ctx.rect(0, 0, 255, 255);
-                ctx.fill();
-                ctx.drawImage(img, 0, 0);
-            }
-
-            function sendMessage(outgoingMessage) {
-                if ((!ws) || (ws.readyState === ws.CLOSED)) { ws = nws(); }
-                if (!isSending) {
-                    output.innerHTML = outgoingMessage;
-                    isSending = true;
-                    ws.send(outgoingMessage);
-                } else {
-                    hasPendingMsg = true;
-                    output.innerHTML = "pending";
-                }
-            }
-            function sendMotor() {
-                sendMessage('MOTOR:' + la.substr(-2) + ':' + lb.substr(-2) + ':' + ra.substr(-2) + ':' + rb.substr(-2));
-            }
-
-            function updateMotor(x, y) {
-                la = 0, lb = 0, ra = 0, rb = 0;
-                if (y < 112) { // forward
-                    if (x > 144) {
-                        lb = (255 - y);
-                        rb = lb - (x - 128);
-                    } else if (x < 112) {
-                        rb = (255 - y);
-                        lb = rb - (128 - x);
-                    } else {
-                        lb = (255 - y);
-                        rb = lb;
-                    }
-                } else if (y > 144) { // backward
-                    if (x > 144) {
-                        la = y;
-                        ra = la - (x - 128);
-                    } else if (x < 112) {
-                        ra = y;
-                        la = ra - (128 - x);
-                    } else {
-                        la = y;
-                        ra = la;
-                    }
-                } else {
-                    if (x > 144) {
-                        lb = x;
-                        ra = lb;
-                    } else if (x < 112) {
-                        rb = (255 - x);
-                        la = rb;
-                    }
-                }
-                la = '0' + la.toString(16);
-                lb = '0' + lb.toString(16);
-                ra = '0' + ra.toString(16);
-                rb = '0' + rb.toString(16);
-                sendMotor();
-
-                ctx.beginPath();
-                ctx.fillStyle = 'rgba(255,48,52,0.5)';
-                ctx.arc(x, y, 10, 0, Math.PI * 2, true);
-                ctx.fill();
-                ctx.closePath();
-            }
-
-            function move(e) {
-                updateMotor(e.clientX - cleft, e.clientY - ctop);
-            }
-
-            function touch(e) {
-                e.preventDefault();
-                let x, y, u = e.touches[0];
-                if (u) {
-                    updateMotor(u.clientX - cleft, u.clientY - ctop);
-                } else {
-                    updateMotor(128, 128);
-                }
-            }
-
-            function nws() {
-                let ws = new WebSocket('ws://' + location.hostname + '/ws', ['arduino']);
-                ws.onmessage = function (e) {
-                    isSending = false;
-                    if (hasPendingMsg) {
-                        hasPendingMsg = false;
-                        sendMotor();
-                    }
-                };
-                return ws;
-            }
-
-            document.ontouchmove = function (e) {
-                e.preventDefault();
-            };
-
-            cv.ontouchstart = touch;
-            cv.ontouchmove = touch;
-            cv.ontouchend = function (e) {
-                clearCanvas();
-                touch(e);
-            };
-            cv.onmousedown = function (e) {
-                mouseDowned = true;
-                move(e);
-            };
-            cv.onmousemove = function (e) {
-                if (mouseDowned) {
-                    move(e);
-                }
-            };
-            cv.onmouseup = function (e) {
-                mouseDowned = false;
-                updateMotor(128, 128);
-                clearCanvas();
-            };
-
-            ws = nws();
-
-            clearCanvas();
-
             startStream();
         });
+
     </script>
 </body>
 

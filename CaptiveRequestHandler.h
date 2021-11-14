@@ -20,9 +20,9 @@ public:
     response->print("<h1>Captive Portal</h1>");
     response->printf("<p>You were trying to reach: http://%s%s</p>", request->host().c_str(), request->url().c_str());
     response->printf("<h2><a href='http://%s.local/edit'>Edit Page</a></h2>", hostname);
-    response->printf("<h2><a href='http://%s.local/ov2640.htm'>Camera Setting</a></h2>", hostname);
+    response->printf("<h2><a href='http://%s.local/ov2640.htm'>OV2640 Camera Setting</a></h2>", hostname);
+    response->printf("<h2><a href='http://%s.local/ov3660.htm'>OV3660 Camera Setting</a></h2>", hostname);
     response->printf("<h2><a href='http://%s.local/snap'>Camera Snap</a></h2>", hostname);
-    response->printf("<h2><a href='http://%s.local/stream'>Camera Stream</a></h2>", hostname);
     response->printf("<h2><a href='http://%s.local/wstester.htm'>WebSocket Tester</a></h2>", hostname);
     response->printf("<h2><a href='http://%s.local/pose.htm'>Robot Cat Pose Design</a></h2>", hostname);
     response->printf("<h2><a href='http://%s.local/graphs.htm'>Graph Demo</a></h2>", hostname);

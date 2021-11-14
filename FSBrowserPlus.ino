@@ -13,9 +13,10 @@
 
   Access the home page: http://fsbrowserplus.local
   A simple web editor: http://fsbrowserplus.local/edit
-  Camera Setting: http://fsbrowserplus.local/ov2640.htm
+  OV2640 Camera Setting: http://fsbrowserplus.local/ov2640.htm
+  OV3660 Camera Setting: http://fsbrowserplus.local/ov3660.htm
   Camera Snap: http://fsbrowserplus.local/snap
-  Camera Stream: http://fsbrowserplus.local/stream
+  Camera Stream: http://fsbrowserplus.local:81/stream
   WebSocket Tester: http://fsbrowserplus.local/wstester.htm
   Robot Cat Pose Design: http://fsbrowserplus.local/pose.htm
   Graph Demo: http://fsbrowserplus.local/graphs.htm
@@ -25,18 +26,7 @@
 
 #include <ESPAsyncWebServer.h>
 
-// Select camera model
-// #define CAMERA_MODEL_WROVER_KIT // Has PSRAM
-// #define CAMERA_MODEL_ESP_EYE // Has PSRAM
-// #define CAMERA_MODEL_M5STACK_PSRAM // Has PSRAM
-// #define CAMERA_MODEL_M5STACK_V2_PSRAM // M5Camera version B Has PSRAM
-// #define CAMERA_MODEL_M5STACK_WIDE // Has PSRAM
-// #define CAMERA_MODEL_ESP32_CAM // Has PSRAM
-// #define CAMERA_MODEL_ESP32_CAM_ROBOT // Has PSRAM
-// #define CAMERA_MODEL_M5STACK_ESP32CAM // No PSRAM
-// #define CAMERA_MODEL_TTGO_T_JOURNAL // No PSRAM
-// #define CAMERA_MODEL_JSZWY_CYIS // No PSRAM
-// #define CAMERA_MODEL_JSZWY_CYIS_2 // No PSRAM
+// Please select camera model in camera_pins.h
 #include "cameraAPI.h"
 
 // custom motor pins
@@ -45,6 +35,11 @@
 //  #define MotorL_B_Pin 25
 //  #define MotorR_A_Pin 13
 //  #define MotorR_B_Pin 14
+
+// custom servo 360 pins
+// #define SERVO360MOTOR
+// #define SERVO360_L_Pin 2
+// #define SERVO360_R_Pin 4
 
 const char *ssid = "YourAP";
 const char *password = "PleaseInputYourPasswordHere";
@@ -61,6 +56,7 @@ const char *httpEditPassword = "PleaseInputYourPasswordHere";
 const uint8_t analogPin = 32;
 #ifdef CAMERA
 const uint8_t digitalInputList[] = {0};
+void startCameraStreamServer();
 #else
 const uint8_t digitalInputList[] = {0, 2, 5, 27};
 #endif
@@ -89,8 +85,10 @@ const uint8_t digitalInputList[] = {0, 2, 5, 27};
 
 #include "gpioAPI.h"
 
-#ifdef MOTOR
+#if defined(MOTOR)
 #include "motorAPI.h"
+#elif defined(SERVO360MOTOR)
+#include "servo360motorAPI.h"
 #endif
 
 #ifndef I2C_SDA_NUM // defined according to camera model
@@ -189,7 +187,7 @@ void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventTyp
           sprintf(strBuf, "[%u] GPIO command, gpio: %d, value: %d\n", client->id(), gpio, value);
           setGPIO(gpio, value);
         }
-#ifdef MOTOR
+#if defined(MOTOR) || defined(SERVO360MOTOR)
         else if (memcmp(MOTORCMD, data, sizeof(MOTORCMD) - 1) == 0)
         {
           uint8_t *p = data + sizeof(MOTORCMD) - 1;
@@ -327,7 +325,7 @@ void setup()
 
   Wire.begin(I2C_SDA_NUM, I2C_SCL_NUM);
   gpioSetup();
-#ifdef MOTOR
+#if defined(MOTOR) || defined(SERVO360MOTOR)
   motorSetup();
 #endif
   pca9685Setup();
@@ -507,11 +505,14 @@ void setup()
                        });
 
 #ifdef CAMERA
+  initCamera();
+
   server.on("/status", HTTP_GET, handleStatus);
   server.on("/snap", HTTP_GET, handleSnap);
-  server.on("/stream", HTTP_GET, handleStream);
   // e.g. http://fsbrowserplus.local/control?var=brightness&val=2
   server.on("/control", HTTP_GET, handleControl);
+
+  startCameraStreamServer();
 #endif
 
   //get heap status, analog input value and all GPIO statuses in one json call
@@ -525,7 +526,7 @@ void setup()
   // e.g. http://fsbrowserplus.local/gpio?pin=4&val=1
   server.on("/gpio", HTTP_GET, handleGPIO);
 
-#ifdef MOTOR
+#if defined(MOTOR) || defined(SERVO360MOTOR)
   // set Motor value
   // e.g. http://fsbrowserplus.local/motor?la=127&lb=0&ra=127&rb=0
   server.on("/motor", HTTP_GET, handleMotor);
