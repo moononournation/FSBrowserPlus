@@ -245,8 +245,9 @@
 #define HREF_GPIO_NUM 26
 #define PCLK_GPIO_NUM 21
 
-#define I2C_SDA_NUM SIOD_GPIO_NUM
-#define I2C_SCL_NUM SIOC_GPIO_NUM
+#define I2C_SDA_NUM 14
+#define I2C_SCL_NUM 13
+#define I2C_SSD1306_ADDRESS 0x3c
 
 #elif defined(CAMERA_MODEL_TTGO_T_JOURNAL_ROBOT)
 #define CAMERA
@@ -273,8 +274,9 @@
 #define SERVO360_L_Pin 2
 #define SERVO360_R_Pin 4
 
-#define I2C_SDA_NUM SIOD_GPIO_NUM
-#define I2C_SCL_NUM SIOC_GPIO_NUM
+#define I2C_SDA_NUM 14
+#define I2C_SCL_NUM 13
+#define I2C_SSD1306_ADDRESS 0x3c
 
 #elif defined(CAMERA_MODEL_JSZWY_CYIS)
 #define CAMERA

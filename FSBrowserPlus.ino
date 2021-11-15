@@ -43,12 +43,10 @@
 
 const char *ssid = "YourAP";
 const char *password = "PleaseInputYourPasswordHere";
-const char *hostname = "fsbrowserplus";
-const char *apName = "FS Browser Plus";
-// const char *hostname = "striderwalker";
-// const char *apName = "Strider Walker";
-// const char *hostname = "striderwalkerv2";
-// const char *apName = "Strider Walker V2";
+// const char *hostname = "fsbrowserplus";
+// const char *apName = "FS Browser Plus";
+const char *hostname = "striderwalkerv6";
+const char *apName = "Strider Walker V6";
 //const char *apPassword = "PleaseInputYourPasswordHere";
 const char *apPassword = ""; // Open WiFi
 const char *httpEditUserName = "admin";
@@ -95,6 +93,12 @@ const uint8_t digitalInputList[] = {0, 2, 5, 27};
 #define I2C_SDA_NUM 21
 #define I2C_SCL_NUM 22
 #endif
+
+#ifdef I2C_SSD1306_ADDRESS
+#include "SSD1306.h"
+SSD1306Wire display(I2C_SSD1306_ADDRESS, I2C_SDA_NUM, I2C_SCL_NUM, GEOMETRY_128_32);
+#endif
+
 #define PCA9685ADDRESS 0x40
 #include "pca9685API.h"
 
@@ -104,6 +108,14 @@ DNSServer dnsServer;
 AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
 AsyncEventSource events("/events");
+
+static String IpAddress2String(const IPAddress &ipAddress)
+{
+  return String(ipAddress[0]) + String(".") +
+         String(ipAddress[1]) + String(".") +
+         String(ipAddress[2]) + String(".") +
+         String(ipAddress[3]);
+}
 
 static uint16_t hexValue(uint8_t h)
 {
@@ -323,7 +335,17 @@ void setup()
   Serial.begin(115200);
   Serial.setDebugOutput(true);
 
+#ifdef I2C_SSD1306_ADDRESS
+  display.init();
+  display.flipScreenVertically();
+  display.setFont(ArialMT_Plain_16);
+  display.setTextAlignment(TEXT_ALIGN_CENTER);
+  display.drawString(128 / 2, 0, apName);
+  display.display();
+#else
   Wire.begin(I2C_SDA_NUM, I2C_SCL_NUM);
+#endif
+
   gpioSetup();
 #if defined(MOTOR) || defined(SERVO360MOTOR)
   motorSetup();
@@ -358,18 +380,26 @@ void setup()
   dnsServer.start(53, "*", WiFi.softAPIP());
   server.addHandler(new CaptiveRequestHandler()).setFilter(ON_AP_FILTER); //only when requested from AP
 
+  Serial.printf("Connect WiFi\n");
   WiFi.begin(ssid, password);
+  delay(1000);
   if (WiFi.waitForConnectResult() != WL_CONNECTED)
   {
-    Serial.printf("STA: Failed!\n");
+    Serial.printf("Retry WiFi connection\n");
     WiFi.disconnect(false);
     delay(1000);
     WiFi.begin(ssid, password);
+    delay(3000);
   }
-  else
+
+  if (WiFi.waitForConnectResult() == WL_CONNECTED)
   {
     Serial.print("IP Address: ");
     Serial.println(WiFi.localIP());
+#ifdef I2C_SSD1306_ADDRESS
+    display.drawString(128 / 2, 16, IpAddress2String(WiFi.localIP()));
+    display.display();
+#endif
   }
 
   //Send OTA events to the browser
