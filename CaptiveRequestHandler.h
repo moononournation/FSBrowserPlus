@@ -10,6 +10,10 @@ public:
     {
       return false; // don't captive self hostname
     }
+    else if (request->host().indexOf("192.168") == 0)
+    {
+      return false; // don't captive local IP access
+    }
     return true;
   }
 
