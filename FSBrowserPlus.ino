@@ -455,13 +455,6 @@ void setup()
   server.on("/heap", HTTP_GET, [](AsyncWebServerRequest *request)
             { request->send(200, "text/plain", String(ESP.getFreeHeap())); });
 
-#ifdef ESP32
-  // server.serveStatic("/", SPIFFS, "/").setDefaultFile("index.htm");
-  server.serveStatic("/", FFat, "/").setDefaultFile("index.htm");
-#elif defined(ESP8266)
-  server.serveStatic("/", SPIFFS, "/").setDefaultFile("index.htm");
-#endif
-
   server.onNotFound([](AsyncWebServerRequest *request)
                     {
                       Serial.printf("NOT_FOUND: ");
@@ -565,6 +558,13 @@ void setup()
   // set pca9685 value
   // e.g. http://fsbrowserplus.local/pca9685?ch=0&val=360
   server.on("/pca9685", HTTP_GET, handleSetChannel);
+
+#ifdef ESP32
+  // server.serveStatic("/", SPIFFS, "/").setDefaultFile("index.htm");
+  server.serveStatic("/", FFat, "/").setDefaultFile("index.htm");
+#elif defined(ESP8266)
+  server.serveStatic("/", SPIFFS, "/").setDefaultFile("index.htm");
+#endif
 
   server.begin();
   Serial.println("ESP Async Web Server started.");
