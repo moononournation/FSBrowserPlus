@@ -36,9 +36,9 @@ static void initCamera()
     }
     else
     {
-        config.frame_size = FRAMESIZE_QVGA;
+        config.frame_size = FRAMESIZE_VGA;
         config.jpeg_quality = 12;
-        config.fb_count = 2;
+        config.fb_count = 1;
     }
 
 #if defined(CAMERA_MODEL_ESP_EYE)
@@ -83,7 +83,7 @@ static void initCamera()
     s->set_vflip(s, 1);
     s->set_hmirror(s, 1);
 #endif
-    s->set_framesize(s, FRAMESIZE_QVGA);
+    s->set_framesize(s, FRAMESIZE_VGA);
 }
 
 static void setControl(String variable, int value)
