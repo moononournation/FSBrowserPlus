@@ -2,7 +2,7 @@
   fsbrowserPlus
 
   Depends library:
-  https://github.com/me-no-dev/ESPAsyncWebServer.git
+  https://github.com/arjenhiemstra/ESPAsyncWebServer.git
   https://github.com/me-no-dev/AsyncTCP.git
 
   upload the contents of the data folder with:
