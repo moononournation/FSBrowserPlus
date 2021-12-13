@@ -83,7 +83,7 @@ static void initCamera()
     s->set_vflip(s, 1);
     s->set_hmirror(s, 1);
 #endif
-    s->set_framesize(s, FRAMESIZE_VGA);
+    s->set_framesize(s, FRAMESIZE_HVGA);
 }
 
 static void setControl(String variable, int value)
