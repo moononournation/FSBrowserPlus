@@ -45,17 +45,19 @@ const char *ssid = "YourAP";
 const char *password = "PleaseInputYourPasswordHere";
 // const char *hostname = "fsbrowserplus";
 // const char *apName = "FS Browser Plus";
-const char *hostname = "striderwalkerv6";
-const char *apName = "Strider Walker V6";
+const char *hostname = "striderwalker";
+const char *apName = "Strider Walker";
 //const char *apPassword = "PleaseInputYourPasswordHere";
 const char *apPassword = ""; // Open WiFi
 const char *httpEditUserName = "admin";
 const char *httpEditPassword = "PleaseInputYourPasswordHere";
 const uint8_t analogPin = 32;
 #ifdef CAMERA
+#define CAPTIVERESPONSEFILE "/camerarobot.htm"
 const uint8_t digitalInputList[] = {0};
 void startCameraStreamServer();
 #else
+#define CAPTIVERESPONSEFILE "/index.htm"
 const uint8_t digitalInputList[] = {0, 2, 5, 27};
 #endif
 

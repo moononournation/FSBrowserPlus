@@ -19,6 +19,10 @@ public:
 
   void handleRequest(AsyncWebServerRequest *request)
   {
+#ifdef CAPTIVERESPONSEFILE
+    // request->send(SPIFFS, CAPTIVERESPONSEFILE);
+    request->send(FFat, CAPTIVERESPONSEFILE);
+#else
     AsyncResponseStream *response = request->beginResponseStream("text/html");
     response->print("<!DOCTYPE html><html><head><title>Captive Portal</title></head><body>");
     response->print("<h1>Captive Portal</h1>");
@@ -34,5 +38,6 @@ public:
     response->printf("<h2><a href='http://%s.local/Camerarobot.htm'>Camera Robot</a></h2>", hostname);
     response->print("</body></html>");
     request->send(response);
+#endif
   }
 };
