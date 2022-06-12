@@ -13,7 +13,7 @@ PCA9685::PCA9685(uint8_t address)
 */
 void PCA9685::begin()
 {
-  Wire.begin();
+  // Wire.begin();
   restart();
 }
 

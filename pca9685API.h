@@ -1,3 +1,5 @@
+#ifdef PCA9685ADDRESS
+
 #include "src/PCA9685/PCA9685.h"
 
 static PCA9685 pca9685(PCA9685ADDRESS);
@@ -46,3 +48,5 @@ static void handleSetChannel(AsyncWebServerRequest *request)
 
     request->send(200, "text/plain", "Set channel " + channel + " to " + value);
 }
+
+#endif // #ifdef PCA9685ADDRESS
