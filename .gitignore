@@ -1,2 +1,5 @@
 .*
+*.cfg
+*.json
+*.svd
 *.txt
