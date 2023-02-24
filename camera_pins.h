@@ -441,8 +441,8 @@
 #define HREF_GPIO_NUM     47
 #define PCLK_GPIO_NUM     13
 
-#define I2C_SDA_NUM 4
-#define I2C_SCL_NUM 5
+#define I2C_SDA_NUM 5
+#define I2C_SCL_NUM 6
 
 #elif defined(CAMERA_MODEL_XIAO_ESP32S3_ROBOT)
 #define CAMERA
@@ -465,15 +465,17 @@
 #define HREF_GPIO_NUM     47
 #define PCLK_GPIO_NUM     13
 
-// #define I2C_SDA_NUM 4
-// #define I2C_SCL_NUM 5
-
 #define MOTOR
-#define MOTOR_EN 1
-#define MotorR_A_Pin 3
+// #define Motor_EN_Pin 1
+#define MotorR_A_Pin 2
 #define MotorR_B_Pin 4
 #define MotorL_A_Pin 5
 #define MotorL_B_Pin 6
+
+// #define I2C_SDA_NUM 5
+// #define I2C_SCL_NUM 6
+#define I2C_SDA_NUM SIOD_GPIO_NUM
+#define I2C_SCL_NUM SIOC_GPIO_NUM
 
 #elif defined(CAMERA_MODEL_ESP32_CAM_BOARD)
 #define CAMERA

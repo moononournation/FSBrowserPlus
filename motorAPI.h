@@ -1,5 +1,9 @@
 static void motorSetup()
 {
+#ifdef Motor_EN_Pin
+    pinMode(Motor_EN_Pin, OUTPUT);
+    digitalWrite(Motor_EN_Pin, HIGH);
+#endif
 #ifdef ESP32
     ledcSetup(1 /* LEDChannel */, 5000 /* freq */, 8 /* resolution */);
     ledcAttachPin(MotorL_A_Pin, 1 /* LEDChannel */);

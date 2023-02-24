@@ -31,11 +31,12 @@
 #include "cameraAPI.h"
 
 // custom motor pins
-//  #define MOTOR
-//  #define MotorL_A_Pin 26
-//  #define MotorL_B_Pin 25
-//  #define MotorR_A_Pin 13
-//  #define MotorR_B_Pin 14
+// #define MOTOR
+// #define Motor_EN_Pin 1
+// #define MotorL_A_Pin 26
+// #define MotorL_B_Pin 25
+// #define MotorR_A_Pin 13
+// #define MotorR_B_Pin 14
 
 // custom servo 360 pins
 // #define SERVO360MOTOR
