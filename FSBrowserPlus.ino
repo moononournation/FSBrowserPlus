@@ -15,6 +15,7 @@
   A simple web editor: http://fsbrowserplus.local/edit
   OV2640 Camera Setting: http://fsbrowserplus.local/ov2640.htm
   OV3660 Camera Setting: http://fsbrowserplus.local/ov3660.htm
+  OV5640 Camera Setting: http://fsbrowserplus.local/ov5640.htm
   Camera Snap: http://fsbrowserplus.local/snap
   Camera Stream: http://fsbrowserplus.local:81/stream
   WebSocket Tester: http://fsbrowserplus.local/wstester.htm
@@ -45,13 +46,15 @@ const char *ssid = "YourAP";
 const char *password = "PleaseInputYourPasswordHere";
 // const char *hostname = "fsbrowserplus";
 // const char *apName = "FS Browser Plus";
-const char *hostname = "striderwalker";
-const char *apName = "Strider Walker";
-//const char *apPassword = "PleaseInputYourPasswordHere";
+// const char *hostname = "striderwalker";
+// const char *apName = "Strider Walker";
+const char *hostname = "xiaonanotank";
+const char *apName = "XIAO nanotank";
+// const char *apPassword = "PleaseInputYourPasswordHere";
 const char *apPassword = ""; // Open WiFi
 const char *httpEditUserName = "admin";
 const char *httpEditPassword = "PleaseInputYourPasswordHere";
-const uint8_t analogPin = 32;
+const uint8_t analogPin = 2;
 #ifdef CAMERA
 #define CAPTIVERESPONSEFILE "/camerarobot.htm"
 const uint8_t digitalInputList[] = {0};
@@ -66,14 +69,17 @@ const uint8_t digitalInputList[] = {0, 2, 5, 27};
 #ifdef ESP32
 #include <FS.h>
 #include <FFat.h>
+#include <LittleFS.h>
 #include <SPIFFS.h>
 #include <ESPmDNS.h>
 #include <WiFi.h>
 #include <AsyncTCP.h>
+#define FILESYSTEM LittleFS
 #elif defined(ESP8266)
 #include <ESP8266WiFi.h>
 #include <ESPAsyncTCP.h>
 #include <ESP8266mDNS.h>
+#define FILESYSTEM SPIFFS
 #endif
 #include <SPIFFSEditor.h>
 #include "CaptiveRequestHandler.h"
@@ -96,13 +102,17 @@ const uint8_t digitalInputList[] = {0, 2, 5, 27};
 #define I2C_SCL_NUM 22
 #endif
 
+#include <Wire.h>
+
 #ifdef I2C_SSD1306_ADDRESS
 #include "SSD1306.h"
 SSD1306Wire display(I2C_SSD1306_ADDRESS, I2C_SDA_NUM, I2C_SCL_NUM, GEOMETRY_128_32);
 #endif
 
-#define PCA9685ADDRESS 0x40
+// #define PCA9685ADDRESS 0x40
+#ifdef PCA9685ADDRESS
 #include "pca9685API.h"
+#endif
 
 char strBuf[1024];
 
@@ -136,7 +146,7 @@ static uint16_t hexValue(uint8_t h)
   return 0;
 }
 
-//format bytes
+// format bytes
 String formatBytes(size_t bytes)
 {
   if (bytes < 1024)
@@ -183,7 +193,7 @@ void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventTyp
     String msg = "";
     if (info->final && info->index == 0 && info->len == len)
     {
-      //the whole message is in a single frame and we got all of it's data
+      // the whole message is in a single frame and we got all of it's data
       Serial.printf("ws[%s][%u] %s-message[%llu]: ", server->url(), client->id(), (info->opcode == WS_TEXT) ? "text" : "binary", info->len);
 
       if (info->opcode == WS_TEXT)
@@ -232,6 +242,7 @@ void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventTyp
           setMotor(la, lb, ra, rb);
         }
 #endif
+#if defined(PCA9685ADDRESS)
         else if (memcmp(PCA9685CMD, data, sizeof(PCA9685CMD) - 1) == 0)
         {
           uint8_t *p = data + sizeof(PCA9685CMD) - 1;
@@ -265,6 +276,7 @@ void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventTyp
           sprintf(strBuf, "[%u] PCA9685 all command, delayMs: %d, values: %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d\n", client->id(), delayMs, values[0], values[1], values[2], values[3], values[4], values[5], values[6], values[7], values[8], values[9], values[10], values[11], values[12], values[13], values[14], values[15]);
           batchSetChannel(delayMs, values);
         }
+#endif
         else
         {
           sprintf(strBuf, "[%u] get Text: %s\n", client->id(), data);
@@ -288,7 +300,7 @@ void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventTyp
     }
     else
     {
-      //message is comprised of multiple frames or the frame is split into multiple packets
+      // message is comprised of multiple frames or the frame is split into multiple packets
       if (info->index == 0)
       {
         if (info->num == 0)
@@ -337,35 +349,35 @@ void setup()
   Serial.begin(115200);
   Serial.setDebugOutput(true);
 
+  Serial.printf("Wire.begin(%d, %d);\n", I2C_SDA_NUM, I2C_SCL_NUM);
+  Wire.begin(I2C_SDA_NUM, I2C_SCL_NUM);
 #ifdef I2C_SSD1306_ADDRESS
+  Serial.println("display.init();");
   display.init();
   display.flipScreenVertically();
   display.setFont(ArialMT_Plain_16);
   display.setTextAlignment(TEXT_ALIGN_CENTER);
   display.drawString(128 / 2, 0, apName);
   display.display();
-#else
-  Wire.begin(I2C_SDA_NUM, I2C_SCL_NUM);
 #endif
 
-  gpioSetup();
+  //  Serial.println("gpioSetup();");
+  //  gpioSetup();
+
 #if defined(MOTOR) || defined(SERVO360MOTOR)
+  Serial.println("motorSetup();");
   motorSetup();
 #endif
+
+#ifdef PCA9685ADDRESS
+  Serial.println("pca9685Setup();");
   pca9685Setup();
-#ifdef ESP32
-  // if (SPIFFS.begin())
-  if (FFat.begin())
-#elif defined(ESP8266)
-  if (SPIFFS.begin())
 #endif
+
+  Serial.println("Init filesystem");
+  if (FILESYSTEM.begin())
   {
-#ifdef ESP32
-    // File root = SPIFFS.open("/");
-    File root = FFat.open("/");
-#elif defined(ESP8266)
-    File root = SPIFFS.open("/");
-#endif
+    File root = FILESYSTEM.open("/");
     File file = root.openNextFile();
     while (file)
     {
@@ -380,7 +392,7 @@ void setup()
   WiFi.mode(WIFI_AP_STA);
   WiFi.softAP(apName, apPassword);
   dnsServer.start(53, "*", WiFi.softAPIP());
-  server.addHandler(new CaptiveRequestHandler()).setFilter(ON_AP_FILTER); //only when requested from AP
+  server.addHandler(new CaptiveRequestHandler()).setFilter(ON_AP_FILTER); // only when requested from AP
 
   Serial.printf("Connect WiFi\n");
   WiFi.begin(ssid, password);
@@ -404,7 +416,7 @@ void setup()
 #endif
   }
 
-  //Send OTA events to the browser
+  // Send OTA events to the browser
   ArduinoOTA.onStart([]()
                      { events.send("Update Start", "ota"); });
   ArduinoOTA.onEnd([]()
@@ -413,8 +425,7 @@ void setup()
                         {
                           char p[32];
                           sprintf(p, "Progress: %u%%\n", (progress / (total / 100)));
-                          events.send(p, "ota");
-                        });
+                          events.send(p, "ota"); });
   ArduinoOTA.onError([](ota_error_t error)
                      {
                        if (error == OTA_AUTH_ERROR)
@@ -426,19 +437,13 @@ void setup()
                        else if (error == OTA_RECEIVE_ERROR)
                          events.send("Recieve Failed", "ota");
                        else if (error == OTA_END_ERROR)
-                         events.send("End Failed", "ota");
-                     });
+                         events.send("End Failed", "ota"); });
   ArduinoOTA.setHostname(hostname);
   ArduinoOTA.begin();
 
   MDNS.addService("http", "tcp", 80);
 
-#ifdef ESP32
-  // SPIFFS.begin();
-  FFat.begin();
-#elif defined(ESP8266)
-  SPIFFS.begin();
-#endif
+  FILESYSTEM.begin();
 
   ws.onEvent(onWsEvent);
   server.addHandler(&ws);
@@ -448,8 +453,7 @@ void setup()
   server.addHandler(&events);
 
 #ifdef ESP32
-  // server.addHandler(new SPIFFSEditor(SPIFFS, httpEditUserName, httpEditPassword));
-  server.addHandler(new SPIFFSEditor(FFat, httpEditUserName, httpEditPassword));
+  server.addHandler(new SPIFFSEditor(FILESYSTEM, httpEditUserName, httpEditPassword));
 #elif defined(ESP8266)
   server.addHandler(new SPIFFSEditor(httpEditUserName, httpEditPassword));
 #endif
@@ -510,24 +514,21 @@ void setup()
                         }
                       }
 
-                      request->send(404);
-                    });
+                      request->send(404); });
   server.onFileUpload([](AsyncWebServerRequest *request, const String &filename, size_t index, uint8_t *data, size_t len, bool final)
                       {
                         if (!index)
                           Serial.printf("UploadStart: %s\n", filename.c_str());
                         Serial.printf("%s", (const char *)data);
                         if (final)
-                          Serial.printf("UploadEnd: %s (%u)\n", filename.c_str(), index + len);
-                      });
+                          Serial.printf("UploadEnd: %s (%u)\n", filename.c_str(), index + len); });
   server.onRequestBody([](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total)
                        {
                          if (!index)
                            Serial.printf("BodyStart: %u\n", total);
                          Serial.printf("%s", (const char *)data);
                          if (index + len == total)
-                           Serial.printf("BodyEnd: %u\n", total);
-                       });
+                           Serial.printf("BodyEnd: %u\n", total); });
 
 #ifdef CAMERA
   initCamera();
@@ -540,12 +541,11 @@ void setup()
   startCameraStreamServer();
 #endif
 
-  //get heap status, analog input value and all GPIO statuses in one json call
+  // get heap status, analog input value and all GPIO statuses in one json call
   server.on("/all", HTTP_GET, [](AsyncWebServerRequest *request)
             {
               String json = handleReadGPIO();
-              request->send(200, "text/json", json);
-            });
+              request->send(200, "text/json", json); });
 
   // set GPIO value
   // e.g. http://fsbrowserplus.local/gpio?pin=4&val=1
@@ -557,17 +557,13 @@ void setup()
   server.on("/motor", HTTP_GET, handleMotor);
 #endif
 
+#if defined(PCA9685ADDRESS)
   // set pca9685 value
   // e.g. http://fsbrowserplus.local/pca9685?ch=0&val=360
   server.on("/pca9685", HTTP_GET, handleSetChannel);
-
-#ifdef ESP32
-  // server.serveStatic("/", SPIFFS, "/").setDefaultFile("index.htm");
-  server.serveStatic("/", FFat, "/").setDefaultFile("index.htm");
-#elif defined(ESP8266)
-  server.serveStatic("/", SPIFFS, "/").setDefaultFile("index.htm");
 #endif
 
+  server.serveStatic("/", FILESYSTEM, "/").setDefaultFile("index.htm");
   server.begin();
   Serial.println("ESP Async Web Server started.");
 }

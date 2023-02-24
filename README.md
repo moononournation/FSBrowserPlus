@@ -20,6 +20,7 @@ This enhancement mainly used for my ESP32 remote projects. Please find more deta
 ## Sample Page
 - OV2640 Camera Setting Page: <http://fsbrowserplus.local/ov2640.htm>
 - OV3660 Camera Setting Page: <http://fsbrowserplus.local/ov3660.htm>
+- OV5640 Camera Setting Page: <http://fsbrowserplus.local/ov5640.htm>
 - Camera Snap: <http://fsbrowserplus.local/snap>
 - Camera Stream: <http://fsbrowserplus.local:81/stream>
 - Web Editor: <http://fsbrowserplus.local/edit>
