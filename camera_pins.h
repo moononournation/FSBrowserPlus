@@ -466,11 +466,11 @@
 #define PCLK_GPIO_NUM     13
 
 #define MOTOR
-// #define Motor_EN_Pin 1
-#define MotorR_A_Pin 2
-#define MotorR_B_Pin 4
-#define MotorL_A_Pin 5
-#define MotorL_B_Pin 6
+// #define Motor_EN_Pin 6
+#define MotorR_A_Pin 1
+#define MotorR_B_Pin 2
+#define MotorL_A_Pin 4
+#define MotorL_B_Pin 5
 
 // #define I2C_SDA_NUM 5
 // #define I2C_SCL_NUM 6
