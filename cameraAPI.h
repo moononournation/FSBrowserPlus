@@ -51,6 +51,8 @@ static void initCamera()
     if (err != ESP_OK)
     {
         Serial.printf("Camera init failed with error 0x%x", err);
+        Serial.flush();
+        esp_deep_sleep_start();
         return;
     }
 
