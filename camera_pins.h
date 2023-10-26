@@ -466,7 +466,7 @@
 #define PCLK_GPIO_NUM     13
 
 #define MOTOR
-// #define Motor_EN_Pin 6
+#define Motor_EN_Pin 6
 #define MotorR_A_Pin 1
 #define MotorR_B_Pin 2
 #define MotorL_A_Pin 4

@@ -72,6 +72,7 @@ static esp_err_t stream_handler(httpd_req_t *req)
         }
         int64_t fr_end = esp_timer_get_time();
 
+/*
         int64_t frame_time = fr_end - last_frame;
         last_frame = fr_end;
         frame_time /= 1000;
@@ -79,6 +80,7 @@ static esp_err_t stream_handler(httpd_req_t *req)
                       (uint32_t)(_jpg_buf_len),
                       (uint32_t)frame_time, 1000.0 / (uint32_t)frame_time,
                       ESP.getFreeHeap());
+*/
     }
 
     return res;

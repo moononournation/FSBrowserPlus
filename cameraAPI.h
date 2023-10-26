@@ -25,20 +25,23 @@ static void initCamera()
     config.pin_reset = RESET_GPIO_NUM;
     config.xclk_freq_hz = 20000000;
     config.pixel_format = PIXFORMAT_JPEG;
+    config.grab_mode = CAMERA_GRAB_LATEST;
 
     // if PSRAM IC present, init with UXGA resolution and higher JPEG quality
     //                      for larger pre-allocated frame buffer.
     if (psramFound())
     {
+        config.fb_location = CAMERA_FB_IN_PSRAM;
         config.frame_size = FRAMESIZE_UXGA;
         config.jpeg_quality = 4;
         config.fb_count = 2;
     }
     else
     {
+        config.fb_location = CAMERA_FB_IN_DRAM;
         config.frame_size = FRAMESIZE_VGA;
         config.jpeg_quality = 12;
-        config.fb_count = 1;
+        config.fb_count = 2;
     }
 
 #if defined(CAMERA_MODEL_ESP_EYE)
