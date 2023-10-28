@@ -57,11 +57,11 @@ const char *httpEditUserName = "admin";
 const char *httpEditPassword = "PleaseInputYourPasswordHere";
 const uint8_t analogPin = 2;
 #ifdef CAMERA
-#define CAPTIVERESPONSEFILE "/camerarobot.htm"
+// #define CAPTIVERESPONSEFILE "/camerarobot.htm"
 const uint8_t digitalInputList[] = {0};
 void startCameraStreamServer();
 #else
-#define CAPTIVERESPONSEFILE "/index.htm"
+// #define CAPTIVERESPONSEFILE "/index.htm"
 const uint8_t digitalInputList[] = {0, 2, 5, 27};
 #endif
 

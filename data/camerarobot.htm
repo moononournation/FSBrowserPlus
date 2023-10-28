@@ -558,7 +558,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function (event) {
-            var baseHost = document.location.origin;
+            var hostName = window.location.hostname;
 
             const hide = el => {
                 el.classList.add('hidden');
@@ -610,7 +610,7 @@
 
             function updateLed(el) {
                 let value = el.checked ? 1 : 0;
-                const query = `${baseHost}/gpio?pin=4&val=${value}`;
+                const query = `http://${hostName}/gpio?pin=4&val=${value}`;
                 fetch(query)
                     .then(response => {
                         console.log(`request to ${query} finished, status: ${response.status}`);
@@ -635,7 +635,7 @@
                         return;
                 }
 
-                const query = `${baseHost}/control?var=${el.id}&val=${value}`;
+                const query = `http://${hostName}/control?var=${el.id}&val=${value}`;
 
                 fetch(query)
                     .then(response => {
@@ -644,7 +644,7 @@
             }
 
             // read initial values
-            fetch(`${baseHost}/status`)
+            fetch(`http://${hostName}/status`)
                 .then(function (response) {
                     return response.json();
                 })
@@ -667,7 +667,7 @@
             };
 
             const startStream = () => {
-                view.src = `${baseHost}:81/stream`;
+                view.src = `http://${hostName}:81/stream`;
                 show(viewContainer);
                 streamButton.innerHTML = 'Stop Stream';
             };
@@ -675,7 +675,7 @@
             // Attach actions to buttons
             stillButton.onclick = () => {
                 stopStream();
-                view.src = `${baseHost}/snap?${Date.now()}`;
+                view.src = `http://${hostName}/snap?${Date.now()}`;
                 show(viewContainer);
             };
 
@@ -756,7 +756,7 @@
             img.onload = function () {
                 clearCanvas();
             }
-            img.src = "arrows.svg";
+            img.src = `http://${hostName}/arrows.svg`;
 
             function clearCanvas() {
                 ctx.fillStyle = '#fff';
@@ -841,7 +841,7 @@
             }
 
             function nws() {
-                let ws = new WebSocket('ws://' + location.hostname + '/ws', ['arduino']);
+                let ws = new WebSocket(`ws://${hostName}/ws`, ['arduino']);
                 ws.onmessage = function (e) {
                     isSending = false;
                     if (hasPendingMsg) {
