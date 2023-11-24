@@ -25,9 +25,14 @@ static void setMotor(uint8_t la, uint8_t lb, uint8_t ra, uint8_t rb)
 {
 #ifdef ESP32
     int lv = la + 255 - lb;
-    int lAngle = map(lv, 0, 510, 0, 179);
     int rv = ra + 255 - rb;
+#ifdef SERVO360_REVERSE
+    int lAngle = map(lv, 0, 510, 179, 0);
+    int rAngle = map(rv, 0, 510, 0, 179);
+#else
+    int lAngle = map(lv, 0, 510, 0, 179);
     int rAngle = map(rv, 0, 510, 179, 0);
+#endif
     servo1.attach(SERVO360_L_Pin, minUs, maxUs);
     servo2.attach(SERVO360_R_Pin, minUs, maxUs);
     servo1.write(lAngle);
