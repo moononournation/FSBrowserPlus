@@ -19,7 +19,7 @@ static esp_err_t stream_handler(httpd_req_t *req)
     uint8_t *_jpg_buf = NULL;
     char *part_buf[64];
 
-    int64_t last_frame = esp_timer_get_time();
+    // int64_t last_frame = esp_timer_get_time();
 
     res = httpd_resp_set_type(req, _STREAM_CONTENT_TYPE);
     if (res != ESP_OK)
@@ -70,7 +70,7 @@ static esp_err_t stream_handler(httpd_req_t *req)
         {
             break;
         }
-        int64_t fr_end = esp_timer_get_time();
+        // int64_t fr_end = esp_timer_get_time();
 
 /*
         int64_t frame_time = fr_end - last_frame;
