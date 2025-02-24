@@ -39,9 +39,9 @@ static void initCamera()
     else
     {
         config.fb_location = CAMERA_FB_IN_DRAM;
-        config.frame_size = FRAMESIZE_VGA;
+        config.frame_size = FRAMESIZE_QVGA;
         config.jpeg_quality = 12;
-        config.fb_count = 1;
+        config.fb_count = 2;
     }
 
 #if defined(CAMERA_MODEL_ESP_EYE)
